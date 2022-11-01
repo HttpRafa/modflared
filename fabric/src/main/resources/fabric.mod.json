@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "modflared",
+  "version": "${version}",
+  "name": "Modflared",
+  "description": "Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.",
+  "authors": [
+    "HttpRafa"
+  ],
+  "contact": {
+    "homepage": "-",
+    "sources": "-"
+  },
+  "license": "MIT",
+  "icon": "assets/cloudflared/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "main": [
+      "de.rafael.modflared.fabric.ModflaredFabric"
+    ]
+  },
+  "mixins": [
+    "modflared.mixins.json",
+    "modflared-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.19.2"
+  }
+}

@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[43,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "modflared"
+version = "${version}"
+displayName = "Modflared"
+authors = "HttpRafa"
+description = '''
+Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.
+'''
+#logoFile = ""
+
+[[dependencies.modflared]]
+modId = "forge"
+mandatory = true
+versionRange = "[43,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.modflared]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.19.2,)"
+ordering = "NONE"
+side = "CLIENT"
