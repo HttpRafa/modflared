@@ -8,11 +8,11 @@
     "HttpRafa"
   ],
   "contact": {
-    "homepage": "-",
-    "sources": "-"
+    "homepage": "https://modrinth.com/mod/modflared",
+    "sources": "https://github.com/HttpRafa/Modflared"
   },
   "license": "MIT",
-  "icon": "assets/cloudflared/icon.png",
+  "icon": "assets/modflared/icon.png",
   "environment": "client",
   "entrypoints": {
     "main": [

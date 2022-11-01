@@ -1,6 +1,6 @@
 modLoader = "javafml"
 loaderVersion = "[43,)"
-#issueTrackerURL = ""
+issueTrackerURL = "https://github.com/HttpRafa/Modflared/issues"
 license = "MIT"
 
 [[mods]]
