@@ -9,6 +9,7 @@ package de.rafael.modflared;
 //------------------------------
 
 import de.rafael.modflared.download.CloudflaredDownload;
+import dev.architectury.platform.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,14 +17,18 @@ import java.io.File;
 
 public class Modflared {
 
-    public static File BASE_FOLDER = new File("modflared/");
-    public static File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
-    public static File ACCESS_FILE = new File(BASE_FOLDER, "access.json");
+    public static File BASE_FOLDER;
+    public static File DATA_FOLDER;
+    public static File ACCESS_FILE;
 
     public static final String MOD_ID = "modflared";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public static void init() {
+        BASE_FOLDER = Platform.getGameFolder().resolve("modflared/").toFile();
+        DATA_FOLDER = new File(BASE_FOLDER, "bin/");
+        ACCESS_FILE = new File(BASE_FOLDER, "access.json");
+
         CloudflaredDownload.findAndDownload(program -> {
             program.loadAccess();
             program.startAccess();

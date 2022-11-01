@@ -71,8 +71,15 @@ public class CloudflaredProgram {
             new Thread(() -> {
                 try {
                     String[] command = access.command();
-                    Modflared.LOGGER.info(Arrays.toString(command));
-                    Process process = new ProcessBuilder(command).directory(Modflared.DATA_FOLDER).start();
+                    Modflared.LOGGER.info(Arrays.toString(command).replaceAll(",",""));
+                    if(Platform.get() == Platform.WINDOWS) {
+                        command[0] = "\"" + Modflared.DATA_FOLDER.getAbsolutePath() + "\\" + command[0] + "\"";
+                    }
+                    ProcessBuilder processBuilder = new ProcessBuilder(command);
+                    if(Platform.get() == Platform.LINUX) {
+                        processBuilder.directory(Modflared.DATA_FOLDER);
+                    }
+                    Process process = processBuilder.start();
                     processes.add(process);
                     InputStream inputStream = process.getInputStream();
                     InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -84,6 +91,7 @@ public class CloudflaredProgram {
                     }
                 } catch (IOException exception) {
                     Modflared.LOGGER.error("Failed to start cloudflared: " + exception.getMessage());
+                    exception.printStackTrace();
                 }
             }, "Access#" + ACCESS_COUNT).start();
             ACCESS_COUNT++;
