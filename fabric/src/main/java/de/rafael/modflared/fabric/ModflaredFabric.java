@@ -8,6 +8,8 @@ public class ModflaredFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         Modflared.init();
+
+
     }
 
 }

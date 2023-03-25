@@ -23,13 +23,13 @@ side = "CLIENT"
 [[dependencies.modflared]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.3,)"
+versionRange = "[1.19.4,)"
 ordering = "NONE"
 side = "CLIENT"
 
 [[dependencies.modflared]]
 modId = "architectury"
 mandatory = true
-versionRange = "[6.2.43,)"
+versionRange = "[8.1.75,)"
 ordering = "AFTER"
 side = "CLIENT"
