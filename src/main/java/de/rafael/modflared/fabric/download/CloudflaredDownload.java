@@ -1,4 +1,4 @@
-package de.rafael.modflared.download;
+package de.rafael.modflared.fabric.download;
 
 //------------------------------
 //
@@ -8,8 +8,10 @@ package de.rafael.modflared.download;
 //
 //------------------------------
 
-import de.rafael.modflared.Modflared;
-import de.rafael.modflared.program.CloudflaredProgram;
+import de.rafael.modflared.fabric.Modflared;
+import de.rafael.modflared.fabric.program.CloudflaredProgram;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.system.Platform;
 
 import java.io.BufferedInputStream;
@@ -62,7 +64,8 @@ public enum CloudflaredDownload {
         this.download = download;
     }
 
-    public CloudflaredProgram program() {
+    @Contract(" -> new")
+    public @NotNull CloudflaredProgram program() {
         return new CloudflaredProgram(new File(Modflared.DATA_FOLDER, fileName));
     }
 

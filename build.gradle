@@ -1,51 +1,63 @@
+//file:noinspection GroovyAssignabilityCheck
 plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
+	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id "com.modrinth.minotaur" version "2.+"
 }
 
-architectury {
-    minecraft = rootProject.minecraft_version
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
 }
 
-subprojects {
-    apply plugin: "dev.architectury.loom"
-
-    loom {
-        silentMojangMappingsLicense()
-    }
-
-    dependencies {
-        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-        // The following line declares the mojmap mappings, you may use other mappings as well
-        mappings loom.officialMojangMappings()
-        // The following line declares the yarn mappings you may select this one as well.
-        // mappings "net.fabricmc:yarn:1.19.2+build.3:v2"
-    }
+repositories {
 }
 
-allprojects {
-    apply plugin: "java"
-    apply plugin: "architectury-plugin"
-    apply plugin: "maven-publish"
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+}
 
-    archivesBaseName = rootProject.archives_base_name + "-" + project.name
-    version = rootProject.mod_version
-    group = rootProject.maven_group
+processResources {
+	inputs.property "version", project.version
 
-    repositories {
-        // Add repositories to retrieve artifacts from in here.
-        // You should only use this when depending on other mods because
-        // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-        // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-        // for more information about repositories.
-    }
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
 
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
-        options.release = 17
-    }
+// Configure the modrinth publication
+modrinth {
+	token = System.getenv("MODRINTH_TOKEN")
+	projectId = "${mod_project_id}"
+	versionType = "${mod_version_type}"
+	uploadFile = remapJar
+	gameVersions = ["${minecraft_version}"]
 
-    java {
-        withSourcesJar()
-    }
+	syncBodyFrom = rootProject.file("README.md").text;
+}
+
+tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
 }

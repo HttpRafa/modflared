@@ -1,4 +1,4 @@
-package de.rafael.modflared.program;
+package de.rafael.modflared.fabric.program;
 
 //------------------------------
 //
@@ -12,7 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.rafael.modflared.Modflared;
+import de.rafael.modflared.fabric.Modflared;
 import org.lwjgl.system.Platform;
 
 import java.io.*;
