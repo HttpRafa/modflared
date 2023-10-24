@@ -19,3 +19,14 @@ To be able to use the mod you have to be on the operating system Windows or Linu
   }
 ]
 ```
+
+## Setting up Cloudflare
+You need to set up cloudflare on your server for this to work. There's plenty of guides on how to do this elsewhere.  
+Make sure in your config file (possibly in `/etc/cloudflared/config.yml`) you have the lines:  
+```YML
+- hostname: example.domain.net
+  service: tcp://localhost:25565
+```
+Replace `example.domain.net` with the correct subdomain you want to use. If you're running multiple instances (eg. with docker), change the port 25565 to whatever port you're using.  
+Restart the cloudflare daemon (`sudo systemctl restart cloudflared`) to apply the changes.
+Add the correct DNS entry: go to [Cloudflare dashboard](https://dash.cloudflare.net), go to your website and DNS entries, then add a new CNAME DNS entry with your subdomain and set the target to `<tunnelID>.cfargotunnel.com`, with the tunnel ID found in the cloudflare config.yml file.
