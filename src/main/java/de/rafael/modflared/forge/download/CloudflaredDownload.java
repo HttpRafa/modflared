@@ -1,4 +1,4 @@
-package de.rafael.modflared.fabric.download;
+package de.rafael.modflared.forge.download;
 
 //------------------------------
 //
@@ -8,11 +8,8 @@ package de.rafael.modflared.fabric.download;
 //
 //------------------------------
 
-import de.rafael.modflared.fabric.Modflared;
-import de.rafael.modflared.fabric.program.CloudflaredProgram;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.lwjgl.system.Platform;
+import de.rafael.modflared.forge.Modflared;
+import de.rafael.modflared.forge.program.CloudflaredProgram;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -64,8 +61,7 @@ public enum CloudflaredDownload {
         this.download = download;
     }
 
-    @Contract(" -> new")
-    public @NotNull CloudflaredProgram program() {
+    public CloudflaredProgram program() {
         return new CloudflaredProgram(new File(Modflared.DATA_FOLDER, fileName));
     }
 
@@ -82,7 +78,8 @@ public enum CloudflaredDownload {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
         }
-        if(Platform.get() == Platform.LINUX) {
+        String osName = System.getProperty("os.name").toLowerCase();
+        if(osName.contains("nix") || osName.contains("nux") || osName.contains("aix")) {
             new ProcessBuilder("chmod", "+x", output.getName()).directory(output.getParentFile()).start();
         }
         Modflared.LOGGER.info("Download finished of cloudflared!");

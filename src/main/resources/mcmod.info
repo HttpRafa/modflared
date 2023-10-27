@@ -1,0 +1,16 @@
+[
+{
+  "modid": "modflared",
+  "name": "Modflared",
+  "description": "Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://modrinth.com/mod/modflared",
+  "updateUrl": "https://modrinth.com/mod/modflared",
+  "authorList": ["HttpRafa"],
+  "credits": "The Forge and FML guys",
+  "logoFile": "icon.png",
+  "screenshots": [],
+  "dependencies": []
+}
+]

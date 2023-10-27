@@ -1,4 +1,4 @@
-package de.rafael.modflared.fabric.program;
+package de.rafael.modflared.forge.program;
 
 //------------------------------
 //
@@ -12,8 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import de.rafael.modflared.fabric.Modflared;
-import org.lwjgl.system.Platform;
+import de.rafael.modflared.forge.Modflared;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -46,8 +45,8 @@ public class CloudflaredProgram {
         }
         accesses.clear();
 
-        try {
-            JsonArray entriesArray = JsonParser.parseReader(new InputStreamReader(new FileInputStream(Modflared.ACCESS_FILE))).getAsJsonArray();
+        try(FileInputStream inputStream = new FileInputStream(Modflared.ACCESS_FILE)) {
+            JsonArray entriesArray = new JsonParser().parse(new InputStreamReader(inputStream)).getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
                 JsonObject entryObject = jsonElement.getAsJsonObject();
                 JsonObject bindObject = entryObject.getAsJsonObject("bind");
@@ -72,11 +71,12 @@ public class CloudflaredProgram {
                 try {
                     String[] command = access.command();
                     Modflared.LOGGER.info(Arrays.toString(command).replaceAll(",",""));
-                    if(Platform.get() == Platform.WINDOWS) {
+                    String osName = System.getProperty("os.name").toLowerCase();
+                    if(osName.contains("win")) {
                         command[0] = "\"" + Modflared.DATA_FOLDER.getAbsolutePath() + "\\" + command[0] + "\"";
                     }
                     ProcessBuilder processBuilder = new ProcessBuilder(command);
-                    if(Platform.get() == Platform.LINUX) {
+                    if(osName.contains("nix") || osName.contains("nux") || osName.contains("aix")) {
                         processBuilder.directory(Modflared.DATA_FOLDER);
                     }
                     Process process = processBuilder.start();
@@ -126,7 +126,12 @@ public class CloudflaredProgram {
         }
 
         public String[] command() {
-            return new String[] {(Platform.get() == Platform.LINUX ? "./" : "") + program.getExecutableFile().getName(), "access", protocol, "--hostname", hostname, "--url", bind_host + ":" + bind_port};
+            String osName = System.getProperty("os.name").toLowerCase();
+            String executePrefix = "";
+            if(osName.contains("nix") || osName.contains("nux") || osName.contains("aix")) {
+                executePrefix = "./";
+            }
+            return new String[] {executePrefix + program.getExecutableFile().getName(), "access", protocol, "--hostname", hostname, "--url", bind_host + ":" + bind_port};
         }
 
         public boolean isUse() {
