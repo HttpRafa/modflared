@@ -3,7 +3,7 @@ Automatically connects you to a [Cloudflare tunnel](https://developers.cloudflar
 #### This mod has not yet been fully tested!
 
 ## How to use
-To be able to use the mod you have to be on the operating system Windows or Linux, MacOS is not supported. To give the mod information about the tunnel, you have to create a folder called "modflared" in the Minecraft folder. A file called "access.json" must then be created in this folder.
+To be able to use the mod you have to be on the operating system Windows, Linux, or MacOS. To give the mod information about the tunnel, you have to create a folder called "modflared" in the Minecraft folder. A file called "access.json" must then be created in this folder.
 
 ## Example configuration (access.json)
 ```JSON
