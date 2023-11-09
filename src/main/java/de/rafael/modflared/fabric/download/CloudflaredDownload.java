@@ -18,7 +18,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -28,7 +28,9 @@ public enum CloudflaredDownload {
     WINDOW_32("windows", "x86", ".exe", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-386.exe"),
     WINDOW_64("windows", "amd64", ".exe", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"),
     LINUX_32("linux", "x86", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-386"),
-    LINUX_64("linux", "amd64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64");
+    LINUX_64("linux", "amd64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"),
+    // MacOS version is behind
+    MAC_OS_X_64("mac os x", "x86_64", "", "https://github.com/cloudflare/cloudflared/releases/download/2023.8.2/cloudflared-darwin-amd64.tgz");
 
     public static void findAndDownload(Consumer<CloudflaredProgram> consumer) {
         new Thread(() -> {
@@ -41,8 +43,12 @@ public enum CloudflaredDownload {
                     try {
                         download.download();
                         consumer.accept(download.program());
+                    } catch(InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        Modflared.LOGGER.error("Error while untarring MacOS cloudflared download: {}", e.getMessage());
+                        e.printStackTrace();
                     } catch(Exception exception) {
-                        Modflared.LOGGER.error("Error: " + exception.getMessage());
+                        Modflared.LOGGER.error("Error: {}", exception.getMessage());
                         exception.printStackTrace();
                     }
                 } else {
@@ -57,10 +63,10 @@ public enum CloudflaredDownload {
     private final String fileName;
     private final String download;
 
-    CloudflaredDownload(String name, String arch, String fileNamePrefix, String download) {
+    CloudflaredDownload(String name, String arch, String fileNameSuffix, String download) {
         this.name = name;
         this.arch = arch;
-        this.fileName = name + "-" + arch + fileNamePrefix;
+        this.fileName = name + "-" + arch + fileNameSuffix;
         this.download = download;
     }
 
@@ -69,12 +75,12 @@ public enum CloudflaredDownload {
         return new CloudflaredProgram(new File(Modflared.DATA_FOLDER, fileName));
     }
 
-    public void download() throws IOException {
+    public void download() throws InterruptedException, IOException {
         File output = new File(Modflared.DATA_FOLDER, fileName);
         if(!output.getParentFile().exists()) output.getParentFile().mkdirs();
         if(!output.exists()) output.createNewFile();
         Modflared.LOGGER.info("Starting download of cloudflared from[" + getDownload() + "]!");
-        try (BufferedInputStream in = new BufferedInputStream(new URL(getDownload()).openStream());
+        try (BufferedInputStream in = new BufferedInputStream(URI.create(getDownload()).toURL().openStream());
             FileOutputStream fileOutputStream = new FileOutputStream(output)) {
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
@@ -82,9 +88,18 @@ public enum CloudflaredDownload {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
         }
-        if(Platform.get() == Platform.LINUX) {
-            new ProcessBuilder("chmod", "+x", output.getName()).directory(output.getParentFile()).start();
+        
+        switch (Platform.get()) {
+            case MACOSX:
+                new ProcessBuilder("tar", "-xzf", output.getName()).directory(output.getParentFile()).start().waitFor();
+                new ProcessBuilder("mv", "cloudflared", output.getName()).directory(output.getParentFile()).start().waitFor();
+            case LINUX:
+                new ProcessBuilder("chmod", "+x", output.getName()).directory(output.getParentFile()).start();
+                break;
+            default:
+                break;
         }
+
         Modflared.LOGGER.info("Download finished of cloudflared!");
     }
 

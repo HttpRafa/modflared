@@ -76,7 +76,8 @@ public class CloudflaredProgram {
                         command[0] = "\"" + Modflared.DATA_FOLDER.getAbsolutePath() + "\\" + command[0] + "\"";
                     }
                     ProcessBuilder processBuilder = new ProcessBuilder(command);
-                    if(Platform.get() == Platform.LINUX) {
+                    // Since LINUX, MACOSX, and WINDOWS are the only options, this will work to only set the directory for Linux and MacOS
+                    if(Platform.get() != Platform.WINDOWS) {
                         processBuilder.directory(Modflared.DATA_FOLDER);
                     }
                     Process process = processBuilder.start();
@@ -126,7 +127,7 @@ public class CloudflaredProgram {
         }
 
         public String[] command() {
-            return new String[] {(Platform.get() == Platform.LINUX ? "./" : "") + program.getExecutableFile().getName(), "access", protocol, "--hostname", hostname, "--url", bind_host + ":" + bind_port};
+            return new String[] {(Platform.get() != Platform.WINDOWS ? "./" : "") + program.getExecutableFile().getName(), "access", protocol, "--hostname", hostname, "--url", bind_host + ":" + bind_port};
         }
 
         public boolean isUse() {
