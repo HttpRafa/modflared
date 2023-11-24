@@ -23,5 +23,8 @@
 		"java": ">=17",
 		"minecraft": "*",
 		"fabricloader": ">=0.14.23"
-	}
+	},
+	"mixins": [
+		"modflared.mixins.json"
+	]
 }

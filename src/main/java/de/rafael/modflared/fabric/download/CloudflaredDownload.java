@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public enum CloudflaredDownload {
@@ -32,7 +33,8 @@ public enum CloudflaredDownload {
     // MacOS version is behind
     MAC_OS_X_64("mac os x", "x86_64", "", "https://github.com/cloudflare/cloudflared/releases/download/2023.8.2/cloudflared-darwin-amd64.tgz");
 
-    public static void findAndDownload(Consumer<CloudflaredProgram> consumer) {
+    public static CompletableFuture<CloudflaredProgram> findAndDownload() {
+        var completableFuture = new CompletableFuture<CloudflaredProgram>();
         new Thread(() -> {
             String name = System.getProperty("os.name").toLowerCase();
             String arch = System.getProperty("os.arch").toLowerCase();
@@ -42,20 +44,24 @@ public enum CloudflaredDownload {
                 if(!download.isInstalled()) {
                     try {
                         download.download();
-                        consumer.accept(download.program());
+                        completableFuture.complete(download.program());
                     } catch(InterruptedException e) {
                         Thread.currentThread().interrupt();
                         Modflared.LOGGER.error("Error while untarring MacOS cloudflared download: {}", e.getMessage());
                         e.printStackTrace();
+                        completableFuture.completeExceptionally(e);
                     } catch(Exception exception) {
                         Modflared.LOGGER.error("Error: {}", exception.getMessage());
                         exception.printStackTrace();
+                        completableFuture.completeExceptionally(exception);
                     }
                 } else {
-                    consumer.accept(download.program());
+                    completableFuture.complete(download.program());
                 }
             }
         }, "Modflared Init Thread").start();
+
+        return completableFuture;
     }
 
     private final String name;
@@ -93,6 +99,7 @@ public enum CloudflaredDownload {
             case MACOSX:
                 new ProcessBuilder("tar", "-xzf", output.getName()).directory(output.getParentFile()).start().waitFor();
                 new ProcessBuilder("mv", "cloudflared", output.getName()).directory(output.getParentFile()).start().waitFor();
+                //Fallthrough
             case LINUX:
                 new ProcessBuilder("chmod", "+x", output.getName()).directory(output.getParentFile()).start();
                 break;
