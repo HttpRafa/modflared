@@ -14,7 +14,7 @@ public class MinecraftClientMixin {
     @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V", at = @At("TAIL"))
     public void disconnect(CallbackInfo ci) {
         Modflared.LOGGER.info("Disconnecting from server, stopping cloudflared...");
-        if (Modflared.PROGRAM.isCompletedExceptionally() || Modflared.PROGRAM.isCancelled()) {
+        if (Modflared.PROGRAM.isCompletedExceptionally() || Modflared.PROGRAM.isCancelled() || !Modflared.PROGRAM.isDone()) {
             Modflared.LOGGER.info("Cloudflared is not running, skipping...");
             return;
         }
