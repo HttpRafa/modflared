@@ -1,13 +1,11 @@
-package de.rafael.modflared.fabric.mixins;
+package de.rafael.modflared.forge.mixins;
 
-import de.rafael.modflared.fabric.Modflared;
-import de.rafael.modflared.fabric.program.CloudflaredProgram.Access;
+import de.rafael.modflared.forge.Modflared;
+import de.rafael.modflared.forge.program.CloudflaredProgram.Access;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -22,10 +20,10 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
-@Mixin(targets = "net.minecraft.client.gui.screen.ConnectScreen$1")
+@Mixin(targets = "net.minecraft.client.gui.screens.ConnectScreen$1")
 public abstract class ConnectScreenMixin implements Runnable {
     @Redirect(method = "run", at = @At(value = "INVOKE", target = "Ljava/util/Optional;get()Ljava/lang/Object;"))
-    Object connect(Optional<InetSocketAddress> optional) throws ExecutionException, InterruptedException {
+    Object connect(@NotNull Optional<InetSocketAddress> optional) throws ExecutionException, InterruptedException {
 
         InetSocketAddress address = optional.get();
         Modflared.LOGGER.info("Connecting to " + address);
@@ -62,7 +60,7 @@ public abstract class ConnectScreenMixin implements Runnable {
         // Check if the server is in the forced tunnels list
         boolean useTunnel =
                 Modflared.FORCE_USE_TUNNEL_SERVERS.stream()
-                        .anyMatch(serverAddress -> serverAddress.getAddress().equalsIgnoreCase(address.getHostName()));
+                        .anyMatch(serverAddress -> serverAddress.getHost().equalsIgnoreCase(address.getHostName()));
         String route = "";
 
         for (String txtRecord : txtRecords) {

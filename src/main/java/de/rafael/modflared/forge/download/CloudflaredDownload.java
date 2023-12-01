@@ -1,4 +1,4 @@
-package de.rafael.modflared.fabric.download;
+package de.rafael.modflared.forge.download;
 
 //------------------------------
 //
@@ -8,8 +8,8 @@ package de.rafael.modflared.fabric.download;
 //
 //------------------------------
 
-import de.rafael.modflared.fabric.Modflared;
-import de.rafael.modflared.fabric.program.CloudflaredProgram;
+import de.rafael.modflared.forge.Modflared;
+import de.rafael.modflared.forge.program.CloudflaredProgram;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.system.Platform;
@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 public enum CloudflaredDownload {
 

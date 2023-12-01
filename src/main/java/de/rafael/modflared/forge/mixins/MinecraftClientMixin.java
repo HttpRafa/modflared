@@ -1,7 +1,7 @@
-package de.rafael.modflared.fabric.mixins;
+package de.rafael.modflared.forge.mixins;
 
-import de.rafael.modflared.fabric.Modflared;
-import net.minecraft.client.MinecraftClient;
+import de.rafael.modflared.forge.Modflared;
+import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.ExecutionException;
 
-@Mixin(MinecraftClient.class)
+@Mixin(Minecraft.class)
 public class MinecraftClientMixin {
-    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V", at = @At("TAIL"))
+    @Inject(method = "clearLevel(Lnet/minecraft/client/gui/screens/Screen;)V", at = @At("TAIL"))
     public void disconnect(CallbackInfo ci) {
         Modflared.LOGGER.info("Disconnecting from server, stopping cloudflared...");
         if (Modflared.PROGRAM.isCompletedExceptionally() || Modflared.PROGRAM.isCancelled() || !Modflared.PROGRAM.isDone()) {

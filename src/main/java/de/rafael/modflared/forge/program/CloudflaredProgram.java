@@ -1,4 +1,4 @@
-package de.rafael.modflared.fabric.program;
+package de.rafael.modflared.forge.program;
 
 //------------------------------
 //
@@ -8,15 +8,13 @@ package de.rafael.modflared.fabric.program;
 //
 //------------------------------
 
-import de.rafael.modflared.fabric.Modflared;
+import de.rafael.modflared.forge.Modflared;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.Platform;
 
 import java.io.*;
-import java.lang.ProcessBuilder.Redirect;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CloudflaredProgram {

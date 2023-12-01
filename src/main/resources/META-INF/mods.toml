@@ -1,0 +1,26 @@
+modLoader="javafml" #mandatory
+loaderVersion="[40,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+license="MIT"
+issueTrackerURL="https://github.com/HttpRafa/modflared/issues"
+[[mods]] #mandatory
+modId="modflared" #mandatory
+version="${file.jarVersion}" #mandatory
+displayName="Modflared" #mandatory
+logoFile="icon.png" #optional
+credits="The Forge and FML guys" #optional
+authors="HttpRafa, Contributers" #optional
+description='''
+Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.
+'''
+[[dependencies.modflared]] #optional
+    modId="forge" #mandatory
+    mandatory=true #mandatory
+    versionRange="[40,)" #mandatory
+    ordering="NONE"
+    side="CLIENT"
+[[dependencies.modflared]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.18.2,1.19)"
+    ordering="NONE"
+    side="CLIENT"

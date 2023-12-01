@@ -1,8 +1,9 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "de.rafael.modflared.fabric.mixins",
+  "package": "de.rafael.modflared.forge.mixins",
   "compatibilityLevel": "JAVA_16",
+  "refmap": "modflared.refmap.json",
   "mixins": [
   ],
   "client": [
