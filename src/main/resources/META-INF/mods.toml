@@ -9,9 +9,7 @@ displayName="Modflared" #mandatory
 logoFile="icon.png" #optional
 credits="The Forge and FML guys" #optional
 authors="HttpRafa, Contributers" #optional
-description='''
-Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.
-'''
+description="Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately."
 [[dependencies.modflared]] #optional
     modId="forge" #mandatory
     mandatory=true #mandatory
