@@ -6,8 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "ConnectScreenMixin",
-    "MinecraftClientMixin"
+    "ClientConnectionMixin",
+    "ConnectScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

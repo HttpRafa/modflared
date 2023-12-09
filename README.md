@@ -7,7 +7,7 @@ To be able to use the mod you have to be on the operating system Windows, Linux,
 
 ### For Players
 If your server admin has properly configured their server you should be able to connect to the server as usual. 
-No extra configuration is needed. (Note for the time being you won't be able to see the server's MOTD/Ping before initiating a connection)
+No extra configuration is needed.
 
 If your server admin has not properly configured their server, you will need to add their server to the `forced_tunnels.json` file in the modflared config folder. 
 #### Example configuration (modflared/forced_tunnels.json)
