@@ -31,8 +31,7 @@ public enum CloudflaredBinary {
     WINDOW_64("windows", "amd64", ".exe", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"),
     LINUX_32("linux", "x86", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-386"),
     LINUX_64("linux", "amd64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"),
-    // MacOS version is behind
-    MAC_OS_X_64("mac os x", "x86_64", "", "https://github.com/cloudflare/cloudflared/releases/download/2023.10.0/cloudflared-darwin-amd64.tgz");
+    MAC_OS_X_64("mac os x", "x86_64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz");
 
     @Contract(" -> new")
     public static @NotNull CompletableFuture<CloudflaredBinary> findAndDownload() {
