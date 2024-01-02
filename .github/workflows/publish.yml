@@ -1,7 +1,15 @@
-name: build
-on: [pull_request]
+name: publish
+on:
+  push:
+    paths:
+      - src/**
+      - build.gradle
+      - gradle.properties
+    branches:
+      - fabric/latest
+      - neoforge/latest
 jobs:
-  build:
+  publish:
     strategy:
       matrix:
         # Use these Java versions
@@ -25,3 +33,9 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
+      - name: upload to modrinth
+        run: ./gradlew modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_EVENT_RAW_PATH: ${{ github.event_path }}
