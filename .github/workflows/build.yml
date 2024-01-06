@@ -1,5 +1,11 @@
 name: build
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    paths:
+      - src/**
+      - build.gradle
+      - gradle.properties
 jobs:
   build:
     strategy:
@@ -25,3 +31,10 @@ jobs:
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
+      - name: upload to modrinth
+        if: github.ref == 'refs/heads/fabric/latest'
+        run: ./gradlew modrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_EVENT_RAW_PATH: ${{ github.event_path }}

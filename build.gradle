@@ -28,11 +28,17 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 }
 
+def replacements = [
+  	"version": project.version,
+	"minecraft_version": project.mod_minecraft_version,
+	"loader_version": project.loader_version
+]
+
 processResources {
-	inputs.property "version", project.version
+	inputs.properties(replacements)
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand replacements
 	}
 }
 
