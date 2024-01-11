@@ -1,0 +1,31 @@
+modLoader="javafml"
+loaderVersion="[2,)"
+license="MIT"
+
+[[mods]]
+modId="modflared"
+version="${version}"
+displayName="Modflared"
+logoFile="icon.png"
+authors="HttpRafa, Contributers"
+description='''Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.'''
+
+[[dependencies.modflared]]
+modId="neoforge"
+type="required"
+versionRange="[20.4,)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.modflared]]
+modId="minecraft"
+type="required"
+versionRange="[${minecraft_version},)"
+ordering="NONE"
+side="CLIENT"
+
+[[mixins]]
+config = "modflared-common.mixins.json"
+
+[[mixins]]
+config = "modflared.mixins.json"

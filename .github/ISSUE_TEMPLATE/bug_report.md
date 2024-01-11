@@ -15,9 +15,9 @@ Where did you get the version from? Which Minecraft version do you use? Which mo
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Go to '...'
+1. Start game
 2. Click on '....'
-3. Scroll down to '....'
+3. Type '....'
 4. See error
 
 **Expected behavior**
