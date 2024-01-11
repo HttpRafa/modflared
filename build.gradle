@@ -32,7 +32,7 @@ allprojects {
         archivesName = rootProject.archives_base_name
     }
 
-    version = rootProject.mod_version
+    version = "${rootProject.mod_version}+${rootProject.mod_version_type}.${System.getenv("GITHUB_RUN_NUMBER") == null ? "dev" : System.getenv("GITHUB_RUN_NUMBER")}"
     group = rootProject.maven_group
 
     repositories {
