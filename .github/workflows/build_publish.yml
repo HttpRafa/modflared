@@ -3,7 +3,9 @@ on:
   pull_request:
   push:
     paths:
-      - src/**
+      - fabric/**
+      - forge/**
+      - common/**
       - build.gradle
       - gradle.properties
 jobs:
@@ -24,8 +26,7 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'microsoft'
-      - name: setup gradle
-        uses: gradle/gradle-build-action@v2
+          cache: gradle
       - name: make gradle wrapper executable
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew

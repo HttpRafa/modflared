@@ -53,7 +53,7 @@ modrinth {
     token = System.getenv("MODRINTH_TOKEN")
     projectId = "${mod_project_id}"
     versionNumber = "${version}+${minecraft_version}"
-    versionName = "${mod_version} for ${minecraft_version}"
+    versionName = "${version} for ${minecraft_version}"
     versionType = "${mod_version_type}"
     changelog = generateChangelog()
     uploadFile = remapJar
