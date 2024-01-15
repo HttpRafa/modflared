@@ -86,9 +86,9 @@ public abstract class ConnectScreenMixin implements Runnable {
 
 
             var port = (int) (Math.random() * 10000 + 25565);
-            cloudflaredProgram.startAccess(new Access("tcp", route, "localhost", port)).get();
+            cloudflaredProgram.startAccess(new Access("tcp", route, "127.0.0.1", port)).get();
 
-            return new InetSocketAddress("localhost", port); // Return the new address to connect to
+            return new InetSocketAddress("127.0.0.1", port); // Return the new address to connect to
         } else {
             Modflared.LOGGER.info("Not using tunnel for " + address.getHostName());
         }
