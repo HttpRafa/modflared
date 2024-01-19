@@ -33,7 +33,7 @@ jobs:
       - name: build
         run: ./gradlew build
       - name: upload to modrinth
-        if: github.ref == 'refs/heads/multi/latest'
+        if: github.ref == 'refs/heads/multi/snapshot'
         run: ./gradlew modrinth
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}
