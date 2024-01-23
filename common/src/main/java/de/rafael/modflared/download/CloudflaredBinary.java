@@ -31,13 +31,16 @@ public enum CloudflaredBinary {
     WINDOW_64("windows", "amd64", ".exe", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"),
     LINUX_32("linux", "x86", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-386"),
     LINUX_64("linux", "amd64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"),
-    MAC_OS_X_64("mac os x", "x86_64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz");
+    MAC_OS_X_64("mac os x", "x86_64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz"),
+
+    MAC_OS_ARM("mac os x", "aarch64", "", "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-amd64.tgz");
 
     @Contract(" -> new")
     public static @NotNull CompletableFuture<CloudflaredBinary> findAndDownload() {
         return CompletableFuture.supplyAsync(() -> {
             String name = System.getProperty("os.name").toLowerCase();
             String arch = System.getProperty("os.arch").toLowerCase();
+
             Optional<CloudflaredBinary> download = Arrays.stream(CloudflaredBinary.values()).filter(item -> name.contains(item.name) && arch.contains(item.arch)).findFirst();
             if(download.isPresent()) {
                 var binary = download.get();
