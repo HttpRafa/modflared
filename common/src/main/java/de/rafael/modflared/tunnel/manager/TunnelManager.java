@@ -10,6 +10,7 @@ import de.rafael.modflared.tunnel.RunningTunnel;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,15 +73,15 @@ public class TunnelManager {
      If the server has the TXT record "cloudflared-use-tunnel", it will use the server address as the route for the tunnel
      If the server has neither of the TXT records, it will not use a tunnel (unless it is in the forced tunnels list)
      */
-    public String shouldUseTunnel(String host) {
-        if(forcedTunnels.stream().anyMatch(serverAddress -> serverAddress.getAddress().equalsIgnoreCase(host))) {
+    public String shouldUseTunnel(String host) throws IOException {
+        if (forcedTunnels.stream().anyMatch(serverAddress -> serverAddress.getAddress().equalsIgnoreCase(host))) {
             return host;
         }
 
         try {
             var properties = new Properties();
             properties.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
-            DirContext dirContext = new InitialDirContext(properties);
+            InitialDirContext dirContext = new InitialDirContext(properties);
             Attributes attributes = dirContext.getAttributes(host, new String[]{"TXT"});
             Attribute txtRecords = attributes.get("TXT");
 
@@ -97,22 +96,62 @@ public class TunnelManager {
                     }
                 }
             }
-        } catch (NamingException exception) {
+        } catch (NamingException | UncheckedIOException exception) {
             Modflared.LOGGER.error("Failed to resolve DNS TXT entries: " + exception.getMessage(), exception);
+
+            Modflared.LOGGER.error(
+                    "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not " +
+                            "using a tunnel", host);
+            Modflared.LOGGER.error(
+                    "If you believe you need a tunnel for this server, please add it to the forced tunnels list in " +
+                            "the modflared folder in your game directory.");
+            Modflared.LOGGER.error("For more information, please see the modflared documentation at " +
+                    "https://github.com/HttpRafa/modflared?tab=readme-ov-file#versions-100-and-onward");
+
+            throw new IOException(exception);
         }
 
         return null;
     }
 
-    public InetSocketAddress handleConnect(@NotNull InetSocketAddress address, ClientConnection connection) {
+    public HandleConnectResult handleConnect(@NotNull InetSocketAddress address, ClientConnection connection) {
         var tunnelConnection = (TunnelManager.Connection) connection;
+        boolean failedToDetermineIfTunnelShouldBeUsed = false;
+        boolean tunnelUsed = false;
 
-        var route = Modflared.TUNNEL_MANAGER.shouldUseTunnel(address.getHostName());
-        if(route != null) {
-            tunnelConnection.setRunningTunnel(Modflared.TUNNEL_MANAGER.createTunnel(route));
-            return tunnelConnection.getRunningTunnel().access().tunnelAddress();
+        String route = null;
+        try {
+            route = Modflared.TUNNEL_MANAGER.shouldUseTunnel(address.getHostName());
+        } catch (IOException ignored) {
+            failedToDetermineIfTunnelShouldBeUsed = true;
         }
-        return address;
+
+        if (route != null) {
+            tunnelConnection.setRunningTunnel(Modflared.TUNNEL_MANAGER.createTunnel(route));
+            address = tunnelConnection.getRunningTunnel().access().tunnelAddress();
+            tunnelUsed = true;
+        }
+        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, tunnelUsed);
+
+    }
+
+    public record HandleConnectResult(InetSocketAddress address, boolean failedToDetermineIfTunnelShouldBeUsed,
+                                      boolean tunnelUsed) {
+        public List<Text> getStatusFeedback() {
+            if (failedToDetermineIfTunnelShouldBeUsed) {
+                return List.of(
+                        Text.literal("Modflared failed to determine if tunnel should be used."),
+                        Text.literal("Assuming a tunnel should not be used..."),
+                        Text.literal("See logs for more information.")
+                );
+            } else if (tunnelUsed) {
+                return List.of(
+                        Text.literal("Modflared has created a tunnel to the server...")
+                );
+            } else {
+                return List.of();
+            }
+        }
     }
 
     public void prepareBinary() {
