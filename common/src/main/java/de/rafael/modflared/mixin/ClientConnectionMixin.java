@@ -26,7 +26,7 @@ public abstract class ClientConnectionMixin implements TunnelManager.Connection 
 
     @Redirect(method = "connect(Ljava/net/InetSocketAddress;ZLnet/minecraft/util/profiler/PerformanceLog;)Lnet/minecraft/network/ClientConnection;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;connect(Ljava/net/InetSocketAddress;ZLnet/minecraft/network/ClientConnection;)Lio/netty/channel/ChannelFuture;"))
     private static ChannelFuture connect(@NotNull InetSocketAddress address, boolean useEpoll, ClientConnection connection) {
-        return ClientConnection.connect(Modflared.TUNNEL_MANAGER.handleConnect(address, connection), useEpoll, connection);
+        return ClientConnection.connect(Modflared.TUNNEL_MANAGER.handleConnect(address, connection).address(), useEpoll, connection);
     }
 
     @Inject(method = "disconnect", at = @At("TAIL"))
