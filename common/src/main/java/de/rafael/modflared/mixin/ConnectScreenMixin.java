@@ -1,7 +1,7 @@
 package de.rafael.modflared.mixin;
 
 import de.rafael.modflared.Modflared;
-import de.rafael.modflared.mixininterfaces.ConnectScreenInterface;
+import de.rafael.modflared.interfaces.mixin.ConnectScreenInterface;
 import de.rafael.modflared.tunnel.manager.TunnelManager;
 import de.rafael.modflared.tunnel.manager.TunnelManager.HandleConnectResult;
 import io.netty.channel.ChannelFuture;
@@ -36,19 +36,16 @@ abstract class ConnectScreen1Mixin implements Runnable {
             ((ConnectScreenInterface) connectScreen).modflared$setStatus(handleConnectResult);
         }
 
-
         return ClientConnection.connect(handleConnectResult.address(), useEpoll, connection);
     }
 }
 
-@Mixin(targets = "net.minecraft.client.gui.screen.multiplayer.ConnectScreen")
+@Mixin(ConnectScreen.class)
 public abstract class ConnectScreenMixin extends Screen implements ConnectScreenInterface {
-
 
     protected ConnectScreenMixin(Text title) {
         super(title);
     }
-
 
     @Unique
     @Nullable

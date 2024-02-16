@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - fabric/**
-      - forge/**
+      - neoforge/**
       - common/**
       - build.gradle
       - gradle.properties
