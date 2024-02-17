@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - fabric/**
-      - neoforge/**
+      - forge/**
       - common/**
       - build.gradle
       - gradle.properties
@@ -34,7 +34,7 @@ jobs:
       - name: build
         run: ./gradlew build
       - name: upload to modrinth
-        if: github.ref == 'refs/heads/multi/latest'
+        if: github.ref == 'refs/heads/multi/1.16.5'
         run: ./gradlew modrinth
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}

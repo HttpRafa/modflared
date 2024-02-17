@@ -7,18 +7,15 @@ import de.rafael.modflared.Modflared;
 import de.rafael.modflared.ModflaredPlatform;
 import de.rafael.modflared.download.CloudflaredBinary;
 import de.rafael.modflared.tunnel.RunningTunnel;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.network.ServerAddress;
-import net.minecraft.network.ClientConnection;
 import net.minecraft.text.Text;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -33,7 +30,7 @@ public class TunnelManager {
     public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
     public static final File FORCED_TUNNELS_FILE = new File(BASE_FOLDER, "forced_tunnels.json");
 
-    public static final Logger CLOUDFLARE_LOGGER = LoggerFactory.getLogger("Cloudflared");
+    public static final Logger CLOUDFLARE_LOGGER = LogManager.getLogger("cloudflared");
 
     private final AtomicReference<CloudflaredBinary> binary = new AtomicReference<>();
     private final List<ServerAddress> forcedTunnels = new ArrayList<>();
@@ -97,11 +94,10 @@ public class TunnelManager {
                 }
             }
         } catch (NamingException | UncheckedIOException exception) {
-            Modflared.LOGGER.error("Failed to resolve DNS TXT entries: " + exception.getMessage(), exception);
+            Modflared.LOGGER.error("Failed to resolve DNS TXT entries for " + host + ": " + exception.getMessage(), exception);
 
             Modflared.LOGGER.error(
-                    "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not " +
-                            "using a tunnel", host);
+                    "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not using a tunnel", host);
             Modflared.LOGGER.error(
                     "If you believe you need a tunnel for this server, please add it to the forced tunnels list in " +
                             "the modflared folder in your game directory.");
@@ -114,7 +110,9 @@ public class TunnelManager {
         return null;
     }
 
-    public HandleConnectResult handleConnect(@NotNull InetSocketAddress address, ClientConnection connection) {
+    public HandleConnectResult handleConnect(@NotNull InetSocketAddress address) {
+    //public HandleConnectResult handleConnect(@NotNull InetSocketAddress address, ClientConnection connection) {
+        /* Networking Code in 1.16.5 is different
         var tunnelConnection = (TunnelManager.Connection) connection;
         boolean failedToDetermineIfTunnelShouldBeUsed = false;
         boolean tunnelUsed = false;
@@ -131,22 +129,37 @@ public class TunnelManager {
             address = tunnelConnection.getRunningTunnel().access().tunnelAddress();
             tunnelUsed = true;
         }
-        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, tunnelUsed);
+        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, tunnelUsed);*/
 
+        RunningTunnel runningTunnel = null;
+        boolean failedToDetermineIfTunnelShouldBeUsed = false;
+
+        String route = null;
+        try {
+            route = Modflared.TUNNEL_MANAGER.shouldUseTunnel(address.getHostName());
+        } catch (IOException ignored) {
+            failedToDetermineIfTunnelShouldBeUsed = true;
+        }
+
+        if (route != null) {
+            runningTunnel = Modflared.TUNNEL_MANAGER.createTunnel(route);
+            address = runningTunnel.access().tunnelAddress();
+        }
+        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, runningTunnel);
     }
 
     public record HandleConnectResult(InetSocketAddress address, boolean failedToDetermineIfTunnelShouldBeUsed,
-                                      boolean tunnelUsed) {
+                                      RunningTunnel runningTunnel) {
         public List<Text> getStatusFeedback() {
             if (failedToDetermineIfTunnelShouldBeUsed) {
                 return List.of(
-                        Text.literal("Modflared failed to determine if tunnel should be used."),
-                        Text.literal("Assuming a tunnel should not be used..."),
-                        Text.literal("See logs for more information.")
+                        Text.of("Modflared failed to determine if tunnel should be used."),
+                        Text.of("Assuming a tunnel should not be used..."),
+                        Text.of("See logs for more information.")
                 );
-            } else if (tunnelUsed) {
+            } else if (runningTunnel != null) {
                 return List.of(
-                        Text.literal("Modflared has created a tunnel to the server...")
+                        Text.of("Modflared has created a tunnel to the server...")
                 );
             } else {
                 return List.of();
@@ -171,15 +184,16 @@ public class TunnelManager {
         }
 
         try {
-            JsonArray entriesArray = JsonParser.parseReader(
-                    new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
+            // NEW: JsonArray entriesArray = JsonParser.parseReader(new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
+            JsonArray entriesArray = new JsonParser().parse(new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
                 var serverString = jsonElement.getAsString();
 
+                /* .isVaild does not exist in 1.16.5
                 if (!ServerAddress.isValid(serverString)) {
                     Modflared.LOGGER.error("Invalid server address: {}", serverString);
                     continue;
-                }
+                }*/
                 forcedTunnels.add(ServerAddress.parse(serverString));
             }
         } catch (Exception exception) {

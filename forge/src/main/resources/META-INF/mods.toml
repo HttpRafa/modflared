@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[2,)"
+loaderVersion="[36,)"
 license="MIT"
 
 [[mods]]
@@ -11,21 +11,15 @@ authors="HttpRafa, Contributers"
 description='''Automatically connects you to a Cloudflare tunnel without having to install cloudflared separately.'''
 
 [[dependencies.modflared]]
-modId="neoforge"
-type="required"
-versionRange="[20.4,)"
+modId="forge"
+mandatory = true
+versionRange="[36,)"
 ordering="NONE"
 side="CLIENT"
 
 [[dependencies.modflared]]
 modId="minecraft"
-type="required"
+mandatory = true
 versionRange="[${minecraft_version},)"
 ordering="NONE"
 side="CLIENT"
-
-[[mixins]]
-config = "modflared-common.mixins.json"
-
-[[mixins]]
-config = "modflared.mixins.json"

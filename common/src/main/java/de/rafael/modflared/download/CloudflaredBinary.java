@@ -78,7 +78,7 @@ public enum CloudflaredBinary {
         try {
             return RunningTunnel.createTunnel(this, access).get();
         } catch (Exception exception) {
-            Modflared.LOGGER.error("Failed to create tunnel", exception);
+            Modflared.LOGGER.error("Failed to create tunnel: " + exception.getMessage(), exception);
             return null;
         }
     }
@@ -87,7 +87,7 @@ public enum CloudflaredBinary {
         File output = new File(TunnelManager.DATA_FOLDER, fileName);
         if(!output.getParentFile().exists()) output.getParentFile().mkdirs();
         if(!output.exists()) output.createNewFile();
-        Modflared.LOGGER.info("Starting download of cloudflared from[" + download + "]!");
+        Modflared.LOGGER.info("Starting download of cloudflared from[{}]!", download);
         try (BufferedInputStream in = new BufferedInputStream(URI.create(download).toURL().openStream());
             FileOutputStream fileOutputStream = new FileOutputStream(output)) {
             byte[] dataBuffer = new byte[1024];
