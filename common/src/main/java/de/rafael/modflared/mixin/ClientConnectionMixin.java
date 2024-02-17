@@ -15,13 +15,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 @Implements(@Interface(iface = TunnelManager.Connection.class, prefix = "connection$"))
 @Mixin(ClientConnection.class)
 public abstract class ClientConnectionMixin implements TunnelManager.Connection {
 
-    @Shadow private SocketAddress address;
     @Unique
     private RunningTunnel modflared$runningTunnel = null;
 
