@@ -14,15 +14,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 @Implements(@Interface(iface = TunnelManager.Connection.class, prefix = "connection$"))
 @Mixin(ClientConnection.class)
 public abstract class ClientConnectionMixin implements TunnelManager.Connection {
 
-    @Shadow private SocketAddress address;
     @Unique
-    private RunningTunnel runningTunnel = null;
+    private RunningTunnel modflared$runningTunnel = null;
 
     @Redirect(method = "connect(Ljava/net/InetSocketAddress;ZLnet/minecraft/util/profiler/PerformanceLog;)Lnet/minecraft/network/ClientConnection;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;connect(Ljava/net/InetSocketAddress;ZLnet/minecraft/network/ClientConnection;)Lio/netty/channel/ChannelFuture;"))
     private static ChannelFuture connect(@NotNull InetSocketAddress address, boolean useEpoll, ClientConnection connection) {
@@ -32,21 +30,21 @@ public abstract class ClientConnectionMixin implements TunnelManager.Connection 
     @Inject(method = "disconnect", at = @At("TAIL"))
     public void disconnect(Text disconnectReason, CallbackInfo callbackInfo) {
         synchronized(this) {
-            if(this.runningTunnel != null) {
-                Modflared.TUNNEL_MANAGER.closeTunnel(this.runningTunnel);
-                this.runningTunnel = null;
+            if(this.modflared$runningTunnel != null) {
+                Modflared.TUNNEL_MANAGER.closeTunnel(this.modflared$runningTunnel);
+                this.modflared$runningTunnel = null;
             }
         }
     }
 
     @Intrinsic
     public RunningTunnel connection$getRunningTunnel() {
-        return runningTunnel;
+        return modflared$runningTunnel;
     }
 
     @Intrinsic
     public void connection$setRunningTunnel(RunningTunnel runningTunnel) {
-        this.runningTunnel = runningTunnel;
+        this.modflared$runningTunnel = runningTunnel;
     }
     
 }

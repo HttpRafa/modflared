@@ -73,7 +73,6 @@ public abstract class ConnectScreenMixin extends Screen implements ConnectScreen
         for (Text status : this.modflared$status.getStatusFeedback()) {
             y += 10;
             context.drawCenteredTextWithShadow(this.textRenderer, status, this.width / 2, y, 16777215);
-
         }
     }
 }

@@ -7,18 +7,17 @@ import de.rafael.modflared.Modflared;
 import de.rafael.modflared.ModflaredPlatform;
 import de.rafael.modflared.download.CloudflaredBinary;
 import de.rafael.modflared.tunnel.RunningTunnel;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -116,8 +115,8 @@ public class TunnelManager {
 
     public HandleConnectResult handleConnect(@NotNull InetSocketAddress address, ClientConnection connection) {
         var tunnelConnection = (TunnelManager.Connection) connection;
+        RunningTunnel runningTunnel = null;
         boolean failedToDetermineIfTunnelShouldBeUsed = false;
-        boolean tunnelUsed = false;
 
         String route = null;
         try {
@@ -127,24 +126,24 @@ public class TunnelManager {
         }
 
         if (route != null) {
-            tunnelConnection.setRunningTunnel(Modflared.TUNNEL_MANAGER.createTunnel(route));
-            address = tunnelConnection.getRunningTunnel().access().tunnelAddress();
-            tunnelUsed = true;
+            runningTunnel = Modflared.TUNNEL_MANAGER.createTunnel(route);
+            tunnelConnection.setRunningTunnel(runningTunnel);
+            address = runningTunnel.access().tunnelAddress();
         }
-        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, tunnelUsed);
+        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, runningTunnel);
 
     }
 
     public record HandleConnectResult(InetSocketAddress address, boolean failedToDetermineIfTunnelShouldBeUsed,
-                                      boolean tunnelUsed) {
-        public List<Text> getStatusFeedback() {
+                                      RunningTunnel runningTunnel) {
+        public @Unmodifiable List<Text> getStatusFeedback() {
             if (failedToDetermineIfTunnelShouldBeUsed) {
                 return List.of(
                         Text.literal("Modflared failed to determine if tunnel should be used."),
                         Text.literal("Assuming a tunnel should not be used..."),
                         Text.literal("See logs for more information.")
                 );
-            } else if (tunnelUsed) {
+            } else if (runningTunnel != null) {
                 return List.of(
                         Text.literal("Modflared has created a tunnel to the server...")
                 );

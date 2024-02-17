@@ -29,12 +29,12 @@ jobs:
           distribution: 'microsoft'
           cache: gradle
       - name: make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
+        if: "${{ runner.os != 'Windows' }}"
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew build
       - name: upload to modrinth
-        if: github.ref == 'refs/heads/multi/latest'
+        if: "github.ref == 'refs/heads/multi/latest' && !contains(github.event.head_commit.message, 'upload skip')"
         run: ./gradlew modrinth
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}
