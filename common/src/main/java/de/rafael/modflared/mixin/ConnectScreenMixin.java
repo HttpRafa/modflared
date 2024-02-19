@@ -34,7 +34,7 @@ abstract class ConnectScreen1Mixin implements Runnable {
             ((IConnectScreen) connectScreen).setStatus(status);
         }
 
-        return ClientConnection.connect(status.runningTunnel().access().tunnelAddress(), useEpoll, connection);
+        return ClientConnection.connect(status.state() == TunnelStatus.State.USE ? status.runningTunnel().access().tunnelAddress() : address, useEpoll, connection);
     }
 
 }
