@@ -1,0 +1,9 @@
+{
+  "gui.tunnel.status.use": "Modflared has created a tunnel to the server...",
+  "gui.tunnel.status.failed.0": "Modflared failed to determine if tunnel should be used.",
+  "gui.tunnel.status.failed.1": "Assuming a tunnel should not be used...",
+  "gui.tunnel.status.failed.2": "See logs for more information.",
+  "gui.multiplayer.tunnel.status.0": "Modflared in use",
+  "gui.toast.title.error": "Modflared encountered an error.",
+  "gui.toast.body.error": "See logs for more information."
+}

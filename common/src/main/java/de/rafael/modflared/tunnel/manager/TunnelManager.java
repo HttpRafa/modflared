@@ -5,13 +5,18 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import de.rafael.modflared.Modflared;
 import de.rafael.modflared.ModflaredPlatform;
-import de.rafael.modflared.download.CloudflaredBinary;
+import de.rafael.modflared.download.CloudflaredVersion;
+import de.rafael.modflared.interfaces.mixin.IClientConnection;
 import de.rafael.modflared.tunnel.RunningTunnel;
+import de.rafael.modflared.tunnel.TunnelStatus;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerAddress;
+import net.minecraft.client.toast.SystemToast;
+import net.minecraft.network.ClientConnection;
 import net.minecraft.text.Text;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -30,15 +35,15 @@ public class TunnelManager {
     public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
     public static final File FORCED_TUNNELS_FILE = new File(BASE_FOLDER, "forced_tunnels.json");
 
-    public static final Logger CLOUDFLARE_LOGGER = LogManager.getLogger("cloudflared");
+    public static final Logger CLOUDFLARE_LOGGER = LoggerFactory.getLogger("Cloudflared");
 
-    private final AtomicReference<CloudflaredBinary> binary = new AtomicReference<>();
+    private final AtomicReference<CloudflaredVersion> cloudflared = new AtomicReference<>();
     private final List<ServerAddress> forcedTunnels = new ArrayList<>();
 
     private final List<RunningTunnel> runningTunnels = new ArrayList<>();
 
     public RunningTunnel createTunnel(String host) {
-        var binary = this.binary.get();
+        var binary = this.cloudflared.get();
         if(binary != null) {
             Modflared.LOGGER.info("Starting tunnel to {}", host);
             var process = binary.createTunnel(RunningTunnel.Access.localWithRandomPort(host));
@@ -94,10 +99,11 @@ public class TunnelManager {
                 }
             }
         } catch (NamingException | UncheckedIOException exception) {
-            Modflared.LOGGER.error("Failed to resolve DNS TXT entries for " + host + ": " + exception.getMessage(), exception);
+            Modflared.LOGGER.error("Failed to resolve DNS TXT entries: " + exception.getMessage(), exception);
 
             Modflared.LOGGER.error(
-                    "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not using a tunnel", host);
+                    "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not " +
+                            "using a tunnel", host);
             Modflared.LOGGER.error(
                     "If you believe you need a tunnel for this server, please add it to the forced tunnels list in " +
                             "the modflared folder in your game directory.");
@@ -110,69 +116,44 @@ public class TunnelManager {
         return null;
     }
 
-    public HandleConnectResult handleConnect(@NotNull InetSocketAddress address) {
-    //public HandleConnectResult handleConnect(@NotNull InetSocketAddress address, ClientConnection connection) {
-        /* Networking Code in 1.16.5 is different
-        var tunnelConnection = (TunnelManager.Connection) connection;
-        boolean failedToDetermineIfTunnelShouldBeUsed = false;
-        boolean tunnelUsed = false;
-
-        String route = null;
-        try {
-            route = Modflared.TUNNEL_MANAGER.shouldUseTunnel(address.getHostName());
-        } catch (IOException ignored) {
-            failedToDetermineIfTunnelShouldBeUsed = true;
+    public void prepareConnection(@NotNull TunnelStatus status, ClientConnection connection) {
+        var tunnelConnection = (IClientConnection) connection;
+        if(status.runningTunnel() != null) {
+            tunnelConnection.setRunningTunnel(status.runningTunnel());
         }
+    }
 
-        if (route != null) {
-            tunnelConnection.setRunningTunnel(Modflared.TUNNEL_MANAGER.createTunnel(route));
-            address = tunnelConnection.getRunningTunnel().access().tunnelAddress();
-            tunnelUsed = true;
-        }
-        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, tunnelUsed);*/
-
+    public TunnelStatus handleConnect(@NotNull InetSocketAddress address) {
         RunningTunnel runningTunnel = null;
-        boolean failedToDetermineIfTunnelShouldBeUsed = false;
+        TunnelStatus.State state = TunnelStatus.State.DONT_USE;
 
         String route = null;
         try {
             route = Modflared.TUNNEL_MANAGER.shouldUseTunnel(address.getHostName());
         } catch (IOException ignored) {
-            failedToDetermineIfTunnelShouldBeUsed = true;
+            state = TunnelStatus.State.FAILED_TO_DETERMINE;
         }
 
         if (route != null) {
             runningTunnel = Modflared.TUNNEL_MANAGER.createTunnel(route);
-            address = runningTunnel.access().tunnelAddress();
+            state = TunnelStatus.State.USE;
         }
-        return new HandleConnectResult(address, failedToDetermineIfTunnelShouldBeUsed, runningTunnel);
-    }
-
-    public record HandleConnectResult(InetSocketAddress address, boolean failedToDetermineIfTunnelShouldBeUsed,
-                                      RunningTunnel runningTunnel) {
-        public List<Text> getStatusFeedback() {
-            if (failedToDetermineIfTunnelShouldBeUsed) {
-                return List.of(
-                        Text.of("Modflared failed to determine if tunnel should be used."),
-                        Text.of("Assuming a tunnel should not be used..."),
-                        Text.of("See logs for more information.")
-                );
-            } else if (runningTunnel != null) {
-                return List.of(
-                        Text.of("Modflared has created a tunnel to the server...")
-                );
-            } else {
-                return List.of();
-            }
-        }
+        return new TunnelStatus(runningTunnel, state);
     }
 
     public void prepareBinary() {
-        CloudflaredBinary.findAndDownload().whenComplete((cloudflaredBinary, throwable) -> {
+        CloudflaredVersion.create().whenComplete((version, throwable) -> {
             if(throwable != null) {
                 Modflared.LOGGER.error(throwable.getMessage(), throwable);
             } else {
-                this.binary.set(cloudflaredBinary);
+                version.prepare().whenComplete((unused, throwable1) -> {
+                    if(throwable1 != null) {
+                        Modflared.LOGGER.error(throwable1.getMessage(), throwable1);
+                        displayErrorToast();
+                    } else {
+                        this.cloudflared.set(version);
+                    }
+                });
             }
         });
     }
@@ -184,20 +165,19 @@ public class TunnelManager {
         }
 
         try {
-            // NEW: JsonArray entriesArray = JsonParser.parseReader(new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
-            JsonArray entriesArray = new JsonParser().parse(new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
+            JsonArray entriesArray = JsonParser.parseReader(
+                    new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
                 var serverString = jsonElement.getAsString();
 
-                /* .isVaild does not exist in 1.16.5
                 if (!ServerAddress.isValid(serverString)) {
                     Modflared.LOGGER.error("Invalid server address: {}", serverString);
                     continue;
-                }*/
+                }
                 forcedTunnels.add(ServerAddress.parse(serverString));
             }
         } catch (Exception exception) {
-            Modflared.LOGGER.error("Failed to load forced tunnels: " + exception.getMessage(), exception);
+            Modflared.LOGGER.error("Failed to load forced tunnels", exception);
         }
 
         Modflared.LOGGER.info("Loaded {} forced tunnels", forcedTunnels.size());
@@ -205,10 +185,9 @@ public class TunnelManager {
             Modflared.LOGGER.info(" - {}", serverAddress.getAddress());
         }
     }
-    
-    public interface Connection {
-        RunningTunnel getRunningTunnel();
-        void setRunningTunnel(RunningTunnel runningTunnel);
+
+    public static void displayErrorToast() {
+        MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PERIODIC_NOTIFICATION, Text.translatable("gui.toast.title.error"), Text.translatable("gui.toast.body.error")));
     }
 
 }

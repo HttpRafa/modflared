@@ -9,7 +9,7 @@ package de.rafael.modflared.tunnel;
 //------------------------------
 
 import de.rafael.modflared.Modflared;
-import de.rafael.modflared.download.CloudflaredBinary;
+import de.rafael.modflared.download.CloudflaredVersion;
 import de.rafael.modflared.tunnel.manager.TunnelManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,11 +22,11 @@ import java.util.concurrent.CompletableFuture;
 
 public record RunningTunnel(Access access, Process process) {
 
-    public static @NotNull CompletableFuture<RunningTunnel> createTunnel(@NotNull CloudflaredBinary binary, @NotNull Access access) {
+    public static @NotNull CompletableFuture<RunningTunnel> createTunnel(@NotNull CloudflaredVersion binary, @NotNull Access access) {
         var future = new CompletableFuture<RunningTunnel>();
         Modflared.EXECUTOR.execute(() -> {
             try {
-                var command = access.command(binary.getFile());
+                var command = access.command(binary.createBinaryRef());
                 Modflared.LOGGER.info(Arrays.toString(command).replace(",",""));
                 if (Platform.get() == Platform.WINDOWS) {
                     command[0] = "\"" + TunnelManager.DATA_FOLDER.getAbsolutePath() + "\\" + command[0] + "\"";
@@ -51,7 +51,7 @@ public record RunningTunnel(Access access, Process process) {
                     }
                 }
             } catch (IOException | InterruptedException exception) {
-                Modflared.LOGGER.error("Failed to start cloudflared: " + exception.getMessage(), exception);
+                Modflared.LOGGER.error("Failed to start cloudflared", exception);
                 future.completeExceptionally(exception);
             }
         });
@@ -62,20 +62,15 @@ public record RunningTunnel(Access access, Process process) {
         process.destroy();
     }
 
-    public record Access(String protocol, String hostname, String bindHost, int bindPort) {
+    public record Access(String protocol, String hostname, InetSocketAddress tunnelAddress) {
         @Contract("_ -> new")
         public static @NotNull Access localWithRandomPort(String host) {
-            return new Access("tcp", host, "127.0.0.1", (int) (Math.random() * 10000 + 25565));
+            return new Access("tcp", host, new InetSocketAddress("127.0.0.1", (int) (Math.random() * 10000 + 25565)));
         }
 
         @Contract("_ -> new")
         public String @NotNull [] command(@NotNull File executable) {
-            return new String[] {(Platform.get() != Platform.WINDOWS ? "./" : "") + executable.getName(), "access", protocol, "--hostname", hostname, "--url", bindHost + ":" + bindPort};
-        }
-
-        @Contract(value = " -> new", pure = true)
-        public @NotNull InetSocketAddress tunnelAddress() {
-            return new InetSocketAddress(bindHost, bindPort);
+            return new String[] {(Platform.get() != Platform.WINDOWS ? "./" : "") + executable.getName(), "access", protocol, "--hostname", hostname, "--url", tunnelAddress.getHostString() + ":" + tunnelAddress.getPort()};
         }
     }
 
