@@ -23,7 +23,8 @@
 	"depends": {
 		"java": ">=17",
 		"minecraft": ">=${minecraft_version}",
-		"fabricloader": ">=${fabric_loader_version}"
+		"fabricloader": ">=${fabric_loader_version}",
+		"fabric-api": "*"
 	},
 	"mixins": [
 		"modflared.mixins.json",

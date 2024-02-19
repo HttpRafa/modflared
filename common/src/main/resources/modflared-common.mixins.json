@@ -4,9 +4,13 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
+    "client.MultiplayerServerListPingerMixin",
+    "client.ServerEntryMixin",
+    "client.ServerInfoMixin"
   ],
   "mixins": [
     "ClientConnectionMixin",
+    "ConnectScreen1Mixin",
     "ConnectScreenMixin"
   ],
   "injectors": {
