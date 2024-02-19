@@ -34,7 +34,7 @@ jobs:
       - name: build
         run: ./gradlew build
       - name: upload to modrinth
-        if: "github.ref == 'refs/heads/multi/latest' && !contains(github.event.head_commit.message, 'upload skip')"
+        if: "github.ref == 'refs/heads/multi/snapshot' && !contains(github.event.head_commit.message, 'upload skip')"
         run: ./gradlew modrinth
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}

@@ -42,7 +42,7 @@ public abstract class ServerEntryMixin {
             int l = mouseX - x;
             int m = mouseY - y;
             if (l >= entryWidth - 15 && l <= entryWidth - 5 && m >= 9 && m <= 9 + 10) {
-                this.screen.setMultiplayerScreenTooltip(Collections.singletonList(Text.translatable("gui.multiplayer.tunnel.status.0").formatted(Formatting.AQUA)));
+                this.screen.setTooltip(Text.translatable("gui.multiplayer.tunnel.status.0").formatted(Formatting.AQUA));
             }
         }
     }
