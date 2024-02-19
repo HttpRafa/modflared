@@ -69,7 +69,7 @@ public class GithubAPI {
     private static JsonObject getJsonFromEndpoint(@NotNull URL url) throws IOException {
         URLConnection connection = url.openConnection();
         InputStream inputStream = connection.getInputStream();
-        return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
+        return new JsonParser().parse(new InputStreamReader(inputStream)).getAsJsonObject();
     }
 
     public record FileHash(String file, String hash) {

@@ -3,10 +3,10 @@ package de.rafael.modflared.platform;
 public enum LoaderPlatform {
 
     FABRIC,
-    NEOFORGE;
+    FORGE;
 
-    public boolean isNeoForge() {
-        return this == NEOFORGE;
+    public boolean isForge() {
+        return this == FORGE;
     }
 
 }

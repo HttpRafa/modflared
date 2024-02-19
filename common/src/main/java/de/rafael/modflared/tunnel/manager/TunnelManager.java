@@ -14,9 +14,10 @@ import net.minecraft.client.network.ServerAddress;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -35,7 +36,7 @@ public class TunnelManager {
     public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
     public static final File FORCED_TUNNELS_FILE = new File(BASE_FOLDER, "forced_tunnels.json");
 
-    public static final Logger CLOUDFLARE_LOGGER = LoggerFactory.getLogger("Cloudflared");
+    public static final Logger CLOUDFLARE_LOGGER = LogManager.getLogger("Cloudflared");
 
     private final AtomicReference<CloudflaredVersion> cloudflared = new AtomicReference<>();
     private final List<ServerAddress> forcedTunnels = new ArrayList<>();
@@ -165,15 +166,16 @@ public class TunnelManager {
         }
 
         try {
-            JsonArray entriesArray = JsonParser.parseReader(
+            JsonArray entriesArray = new JsonParser().parse(
                     new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
                 var serverString = jsonElement.getAsString();
 
+                /* .isValid does not exist in 1.16.5
                 if (!ServerAddress.isValid(serverString)) {
                     Modflared.LOGGER.error("Invalid server address: {}", serverString);
                     continue;
-                }
+                }*/
                 forcedTunnels.add(ServerAddress.parse(serverString));
             }
         } catch (Exception exception) {
@@ -187,7 +189,7 @@ public class TunnelManager {
     }
 
     public static void displayErrorToast() {
-        MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PERIODIC_NOTIFICATION, Text.translatable("gui.toast.title.error"), Text.translatable("gui.toast.body.error")));
+        MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.TUTORIAL_HINT, new TranslatableText("gui.toast.title.error"), new TranslatableText("gui.toast.body.error")));
     }
 
 }

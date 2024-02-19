@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import de.rafael.modflared.platform.LoaderPlatform;
 import de.rafael.modflared.tunnel.manager.TunnelManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,7 +16,7 @@ public class Modflared {
     public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().serializeNulls().create();
 
     public static final String MOD_ID = "modflared";
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
     public static final LoaderPlatform PLATFORM = ModflaredPlatform.getPlatform();
 
     public static final TunnelManager TUNNEL_MANAGER = new TunnelManager();

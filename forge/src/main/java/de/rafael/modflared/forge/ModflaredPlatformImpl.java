@@ -1,7 +1,7 @@
-package de.rafael.modflared.neoforge;
+package de.rafael.modflared.forge;
 
 import de.rafael.modflared.platform.LoaderPlatform;
-import net.neoforged.fml.loading.FMLPaths;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 
@@ -12,7 +12,7 @@ public class ModflaredPlatformImpl {
     }
 
     public static LoaderPlatform getPlatform() {
-        return LoaderPlatform.NEOFORGE;
+        return LoaderPlatform.FORGE;
     }
 
 }
