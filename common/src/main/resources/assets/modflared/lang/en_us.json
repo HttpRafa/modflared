@@ -3,7 +3,7 @@
   "gui.tunnel.status.failed.0": "Modflared failed to determine if tunnel should be used.",
   "gui.tunnel.status.failed.1": "Assuming a tunnel should not be used...",
   "gui.tunnel.status.failed.2": "See logs for more information.",
-  "gui.multiplayer.tunnel.status.0": "Modflared in use",
+  "gui.multiplayer.tunnel.status.0": "Tunnel connection is managed by Modflared",
   "gui.toast.title.error": "Modflared encountered an error.",
   "gui.toast.body.error": "See logs for more information."
 }

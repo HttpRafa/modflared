@@ -11,7 +11,7 @@ public record TunnelStatus(RunningTunnel runningTunnel, State state) {
     public @Unmodifiable List<Text> generateFeedback() {
         return switch (state) {
             case USE -> List.of(
-                    Text.translatable("gui.tunnel.status.use").formatted(Formatting.AQUA)
+                    Text.translatable("gui.tunnel.status.use")
             );
             case DONT_USE -> List.of();
             case FAILED_TO_DETERMINE -> List.of(
