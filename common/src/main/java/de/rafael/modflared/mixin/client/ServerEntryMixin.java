@@ -35,7 +35,7 @@ public abstract class ServerEntryMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta, CallbackInfo ci) {
-        var tunnelStatus = ((IServerInfo) server).getTunnelStatus();
+        TunnelStatus tunnelStatus = ((IServerInfo) server).getTunnelStatus();
         if(tunnelStatus != null && tunnelStatus.state() == TunnelStatus.State.USE) {
             int xOffset = entryWidth - 15;
             int yOffset = 10 + 1;

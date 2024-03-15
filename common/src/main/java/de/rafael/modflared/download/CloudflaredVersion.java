@@ -22,6 +22,7 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 public class CloudflaredVersion {
@@ -41,7 +42,7 @@ public class CloudflaredVersion {
     public static CompletableFuture<CloudflaredVersion> create() {
         if(VERSION_FILE.exists()) {
             try {
-                var version = Modflared.GSON.fromJson(new InputStreamReader(new FileInputStream(VERSION_FILE)), CloudflaredVersion.class);
+                CloudflaredVersion version = Modflared.GSON.fromJson(new InputStreamReader(new FileInputStream(VERSION_FILE)), CloudflaredVersion.class);
                 if(version != null) return CompletableFuture.completedFuture(version);
             } catch (Throwable throwable) {
                 Modflared.LOGGER.error("Failed to load existing version file creating new one...", throwable);
@@ -164,7 +165,7 @@ public class CloudflaredVersion {
     }
 
     private void save() throws IOException {
-        Files.writeString(VERSION_FILE.toPath(), Modflared.GSON.toJson(this), StandardCharsets.UTF_8);
+        Files.write(VERSION_FILE.toPath(), Collections.singleton(Modflared.GSON.toJson(this)), StandardCharsets.UTF_8);
     }
 
 }

@@ -18,9 +18,9 @@ public abstract class MultiplayerServerListPingerMixin {
 
     @Redirect(method = "add", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;connect(Ljava/net/InetAddress;IZ)Lnet/minecraft/network/ClientConnection;"))
     public ClientConnection connect(InetAddress address, int port, boolean shouldUseNativeTransport, ServerInfo entry) {
-        var result = Modflared.TUNNEL_MANAGER.handleConnect(new InetSocketAddress(address, port));
+        TunnelStatus result = Modflared.TUNNEL_MANAGER.handleConnect(new InetSocketAddress(address, port));
         if(result.state() == TunnelStatus.State.USE) {
-            var connection = ClientConnection.connect(result.runningTunnel().access().tunnelAddress().getAddress(), result.runningTunnel().access().tunnelAddress().getPort(), shouldUseNativeTransport);
+            ClientConnection connection = ClientConnection.connect(result.runningTunnel().access().tunnelAddress().getAddress(), result.runningTunnel().access().tunnelAddress().getPort(), shouldUseNativeTransport);
             Modflared.TUNNEL_MANAGER.prepareConnection(result, connection);
             ((IServerInfo) entry).setTunnelStatus(result);
             return connection;

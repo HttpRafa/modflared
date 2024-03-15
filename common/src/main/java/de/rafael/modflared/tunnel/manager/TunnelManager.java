@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
@@ -44,10 +45,10 @@ public class TunnelManager {
     private final List<RunningTunnel> runningTunnels = new ArrayList<>();
 
     public RunningTunnel createTunnel(String host) {
-        var binary = this.cloudflared.get();
+        CloudflaredVersion binary = this.cloudflared.get();
         if(binary != null) {
             Modflared.LOGGER.info("Starting tunnel to {}", host);
-            var process = binary.createTunnel(RunningTunnel.Access.localWithRandomPort(host));
+            RunningTunnel process = binary.createTunnel(RunningTunnel.Access.localWithRandomPort(host));
             if(process == null) return null;
             this.runningTunnels.add(process);
             return process;
@@ -82,16 +83,16 @@ public class TunnelManager {
         }
 
         try {
-            var properties = new Properties();
+            Properties properties = new Properties();
             properties.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
             InitialDirContext dirContext = new InitialDirContext(properties);
             Attributes attributes = dirContext.getAttributes(host, new String[]{"TXT"});
             Attribute txtRecords = attributes.get("TXT");
 
             if (txtRecords != null) {
-                var iterator = txtRecords.getAll();
+                NamingEnumeration<?> iterator = txtRecords.getAll();
                 while (iterator.hasMore()) {
-                    var record = (String) iterator.next();
+                    String record = (String) iterator.next();
                     if (record.startsWith("cloudflared-route=")) {
                         return record.replace("cloudflared-route=", "");
                     } else if (record.equals("cloudflared-use-tunnel")) {
@@ -118,7 +119,7 @@ public class TunnelManager {
     }
 
     public void prepareConnection(@NotNull TunnelStatus status, ClientConnection connection) {
-        var tunnelConnection = (IClientConnection) connection;
+        IClientConnection tunnelConnection = (IClientConnection) connection;
         if(status.runningTunnel() != null) {
             tunnelConnection.setRunningTunnel(status.runningTunnel());
         }
@@ -169,7 +170,7 @@ public class TunnelManager {
             JsonArray entriesArray = new JsonParser().parse(
                     new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
-                var serverString = jsonElement.getAsString();
+                String serverString = jsonElement.getAsString();
 
                 /* .isValid does not exist in 1.16.5
                 if (!ServerAddress.isValid(serverString)) {

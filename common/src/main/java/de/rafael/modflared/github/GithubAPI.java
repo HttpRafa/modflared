@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class GithubAPI {
 
@@ -52,7 +53,7 @@ public class GithubAPI {
     public static @NotNull CompletableFuture<FileHash> requestFileHash(String filename) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return extractHashes(getJsonFromEndpoint(GITHUB_API_ENDPOINT)).stream().filter(item -> item.file.equals(filename)).findFirst().orElseThrow();
+                return extractHashes(getJsonFromEndpoint(GITHUB_API_ENDPOINT)).stream().filter(item -> item.file.equals(filename)).findFirst().orElseThrow(IllegalStateException::new);
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to get file hash from github", throwable);
             }
@@ -61,9 +62,9 @@ public class GithubAPI {
 
     private static List<FileHash> extractHashes(@NotNull JsonObject data) {
         return Arrays.stream(data.get("body").getAsString().split("\n")).filter(item -> item.startsWith("cloudflared-") && item.contains(":")).map(item -> {
-            var fileData = item.split(":");
+            String[] fileData = item.split(":");
             return new FileHash(fileData[0].trim(), fileData[1].trim());
-        }).toList();
+        }).collect(Collectors.toList());
     }
 
     private static JsonObject getJsonFromEndpoint(@NotNull URL url) throws IOException {
@@ -72,7 +73,15 @@ public class GithubAPI {
         return new JsonParser().parse(new InputStreamReader(inputStream)).getAsJsonObject();
     }
 
-    public record FileHash(String file, String hash) {
+    public static class FileHash {
+
+        private final String file;
+        private final String hash;
+
+        public FileHash(String file, String hash) {
+            this.file = file;
+            this.hash = hash;
+        }
 
         public boolean compareTo(File file) throws IOException {
             ByteSource byteSource = Files.asByteSource(file);
@@ -82,6 +91,14 @@ public class GithubAPI {
 
         public boolean compareTo(String hash) {
             return Objects.equals(this.hash, hash);
+        }
+
+        public String file() {
+            return file;
+        }
+
+        public String hash() {
+            return hash;
         }
 
     }

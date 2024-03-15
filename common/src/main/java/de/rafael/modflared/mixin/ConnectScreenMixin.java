@@ -26,16 +26,16 @@ abstract class ConnectScreen1Mixin implements Runnable {
 
     @Redirect(method = "run", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;connect(Ljava/net/InetAddress;IZ)Lnet/minecraft/network/ClientConnection;"))
     private @NotNull ClientConnection connect(InetAddress inetAddress, int port, boolean shouldUseNativeTransport) {
-        var address = new InetSocketAddress(inetAddress, port);
-        var status = Modflared.TUNNEL_MANAGER.handleConnect(address);
+        InetSocketAddress address = new InetSocketAddress(inetAddress, port);
+        TunnelStatus status = Modflared.TUNNEL_MANAGER.handleConnect(address);
 
-        var currentScreen =  MinecraftClient.getInstance().currentScreen;
-        if (currentScreen instanceof ConnectScreen connectScreen) {
-            ((IConnectScreen) connectScreen).setStatus(status);
+        Screen currentScreen =  MinecraftClient.getInstance().currentScreen;
+        if (currentScreen instanceof ConnectScreen) {
+            ((IConnectScreen) currentScreen).setStatus(status);
         }
 
-        var targetAddress = status.state() == TunnelStatus.State.USE ? status.runningTunnel().access().tunnelAddress() : address;
-        var connection = ClientConnection.connect(targetAddress.getAddress(), targetAddress.getPort(), shouldUseNativeTransport);
+        InetSocketAddress targetAddress = status.state() == TunnelStatus.State.USE ? status.runningTunnel().access().tunnelAddress() : address;
+        ClientConnection connection = ClientConnection.connect(targetAddress.getAddress(), targetAddress.getPort(), shouldUseNativeTransport);
         Modflared.TUNNEL_MANAGER.prepareConnection(status, connection);
 
         return connection;

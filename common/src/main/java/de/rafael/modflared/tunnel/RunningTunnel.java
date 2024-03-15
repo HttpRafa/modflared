@@ -20,13 +20,21 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
-public record RunningTunnel(Access access, Process process) {
+public class RunningTunnel {
+
+    private final Access access;
+    private final Process process;
+
+    public RunningTunnel(Access access, Process process) {
+        this.access = access;
+        this.process = process;
+    }
 
     public static @NotNull CompletableFuture<RunningTunnel> createTunnel(@NotNull CloudflaredVersion binary, @NotNull Access access) {
-        var future = new CompletableFuture<RunningTunnel>();
+        CompletableFuture<RunningTunnel> future = new CompletableFuture<RunningTunnel>();
         Modflared.EXECUTOR.execute(() -> {
             try {
-                var command = access.command(binary.createBinaryRef());
+                String[] command = access.command(binary.createBinaryRef());
                 Modflared.LOGGER.info(Arrays.toString(command).replace(",",""));
                 if (Platform.get() == Platform.WINDOWS) {
                     command[0] = "\"" + TunnelManager.DATA_FOLDER.getAbsolutePath() + "\\" + command[0] + "\"";
@@ -62,7 +70,26 @@ public record RunningTunnel(Access access, Process process) {
         process.destroy();
     }
 
-    public record Access(String protocol, String hostname, InetSocketAddress tunnelAddress) {
+    public Access access() {
+        return access;
+    }
+
+    public Process process() {
+        return process;
+    }
+
+    public static class Access {
+
+        private final String protocol;
+        private final String hostname;
+        private final InetSocketAddress tunnelAddress;
+
+        public Access(String protocol, String hostname, InetSocketAddress tunnelAddress) {
+            this.protocol = protocol;
+            this.hostname = hostname;
+            this.tunnelAddress = tunnelAddress;
+        }
+
         @Contract("_ -> new")
         public static @NotNull Access localWithRandomPort(String host) {
             return new Access("tcp", host, new InetSocketAddress("127.0.0.1", (int) (Math.random() * 10000 + 25565)));
@@ -72,6 +99,19 @@ public record RunningTunnel(Access access, Process process) {
         public String @NotNull [] command(@NotNull File executable) {
             return new String[] {(Platform.get() != Platform.WINDOWS ? "./" : "") + executable.getName(), "access", protocol, "--hostname", hostname, "--url", tunnelAddress.getHostString() + ":" + tunnelAddress.getPort()};
         }
+
+        public String protocol() {
+            return protocol;
+        }
+
+        public String hostname() {
+            return hostname;
+        }
+
+        public InetSocketAddress tunnelAddress() {
+            return tunnelAddress;
+        }
+
     }
 
 }

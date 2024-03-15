@@ -3,6 +3,7 @@ package de.rafael.modflared.download;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum CloudflaredDownload {
 
@@ -29,7 +30,7 @@ public enum CloudflaredDownload {
     public static @NotNull CloudflaredDownload find() {
         String osName = System.getProperty("os.name").toLowerCase();
         String arch = System.getProperty("os.arch").toLowerCase();
-        var download = Arrays.stream(CloudflaredDownload.values()).filter(item -> osName.contains(item.osName) && arch.contains(item.arch)).findFirst();
+        Optional<CloudflaredDownload> download = Arrays.stream(CloudflaredDownload.values()).filter(item -> osName.contains(item.osName) && arch.contains(item.arch)).findFirst();
         if(download.isPresent()) {
             return download.get();
         } else {
