@@ -108,7 +108,7 @@ public class TunnelManager {
             if (txtRecords != null) {
                 var iterator = txtRecords.getAll();
                 while (iterator.hasMore()) {
-                    var record = (String) iterator.next();
+                    var record = ((String) iterator.next()).replaceAll("\"", "");
                     if (record.startsWith("cloudflared-route=")) {
                         return record.replace("cloudflared-route=", "");
                     } else if (record.equals("cloudflared-use-tunnel")) {
