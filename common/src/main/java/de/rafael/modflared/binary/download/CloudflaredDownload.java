@@ -12,6 +12,7 @@ public enum CloudflaredDownload {
     LINUX_64("linux", "amd64", "cloudflared-linux-amd64", "cloudflared-linux-amd64"),
     MAC_OS_X_64("mac os x", "x86_64", "cloudflared-darwin-amd64", "cloudflared-darwin-amd64.tgz"),
 
+    WINDOW_ARM("windows", "aarch64", "cloudflared-windows-amd64.exe", "cloudflared-windows-amd64.exe"),
     MAC_OS_ARM("mac os x", "aarch64", "cloudflared-darwin-amd64", "cloudflared-darwin-amd64.tgz");
 
     private final String osName;
