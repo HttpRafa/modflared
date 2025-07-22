@@ -27,7 +27,7 @@ public abstract class ClientConnectionMixin implements IClientConnection {
     public void disconnect(Text disconnectReason, CallbackInfo callbackInfo) {
         synchronized(this) {
             if(this.modflared$runningTunnel != null) {
-                Modflared.TUNNEL_MANAGER.closeTunnel(this.modflared$runningTunnel);
+                Modflared.TUNNEL_MANAGER.closeTunnel(this.modflared$runningTunnel, "modflared", false);
                 this.modflared$runningTunnel = null;
             }
         }

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import de.rafael.modflared.Modflared;
 import de.rafael.modflared.ModflaredPlatform;
+import de.rafael.modflared.api.tunnel.IModflaredApiTunnel;
 import de.rafael.modflared.binary.Cloudflared;
 import de.rafael.modflared.interfaces.mixin.IClientConnection;
 import de.rafael.modflared.tunnel.RunningTunnel;
@@ -27,12 +28,10 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class TunnelManager {
+public class TunnelManager implements IModflaredApiTunnel {
 
     public static final File BASE_FOLDER = ModflaredPlatform.getGameDir().resolve("modflared/").toFile();
     public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
@@ -43,7 +42,7 @@ public class TunnelManager {
     private final AtomicReference<Cloudflared> cloudflared = new AtomicReference<>();
     private final List<ServerAddress> forcedTunnels = new ArrayList<>();
 
-    private final List<RunningTunnel> runningTunnels = new ArrayList<>();
+    private final Map<RunningTunnel, List<String>> runningTunnels = new HashMap<>();
 
     public RunningTunnel createTunnel(String host) {
         var binary = this.cloudflared.get();
@@ -51,21 +50,32 @@ public class TunnelManager {
             Modflared.LOGGER.info("Starting tunnel to {}", host);
             var process = binary.createTunnel(RunningTunnel.Access.localWithRandomPort(host));
             if (process == null) return null;
-            this.runningTunnels.add(process);
+            this.runningTunnels.put(process, new ArrayList<>(Collections.singleton("modflared")));
             return process;
         } else {
             return null;
         }
     }
 
-    public void closeTunnel(@NotNull RunningTunnel runningTunnel) {
-        Modflared.LOGGER.info("Stopping tunnel to {}", runningTunnel.access().tunnelAddress());
+    public void closeTunnel(@NotNull RunningTunnel runningTunnel, String dependencyId, boolean force) {
+        if (force) {
+            Modflared.LOGGER.info("Stopping tunnel to {}", runningTunnel.access().tunnelAddress());
+        } else {
+            List<String> dependencies = runningTunnels.get(runningTunnel);
+            dependencies.remove(dependencyId);
+            if (dependencies.isEmpty()) {
+                Modflared.LOGGER.info("Closing tunnel to {} as no more dependencies are using it", runningTunnel.access().tunnelAddress());
+            } else {
+                runningTunnels.put(runningTunnel, dependencies);
+                return;
+            }
+        }
         this.runningTunnels.remove(runningTunnel);
         runningTunnel.closeTunnel();
     }
 
-    public void closeTunnels() {
-        for (RunningTunnel runningTunnel : this.runningTunnels) {
+    public void forceCloseTunnels() {
+        for (RunningTunnel runningTunnel : this.runningTunnels.keySet()) {
             runningTunnel.closeTunnel();
         }
     }
@@ -230,4 +240,37 @@ public class TunnelManager {
         MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PERIODIC_NOTIFICATION, Text.translatable("gui.toast.title.error"), Text.translatable("gui.toast.body.error")));
     }
 
+    @Override
+    public boolean isModflaredTunnel(String host, int port) {
+        return getRunningTunnel(host, port) != null;
+    }
+
+    @Override
+    public void addTunnelDependency(String host, int port, String id) {
+        RunningTunnel tunnel = getRunningTunnel(host, port);
+        if (tunnel != null) {
+            this.runningTunnels.computeIfAbsent(tunnel, k -> new ArrayList<>()).add(id);
+        } else {
+            Modflared.LOGGER.warn("No running tunnel found for {}:{}", host, port);
+        }
+    }
+
+    @Override
+    public void removeTunnelDependency(String host, int port, String id) {
+        RunningTunnel tunnel = getRunningTunnel(host, port);
+        if (tunnel != null) {
+            closeTunnel(tunnel, id, false);
+        } else {
+            Modflared.LOGGER.warn("No running tunnel found for {}:{}", host, port);
+        }
+    }
+
+    @Nullable
+    private RunningTunnel getRunningTunnel(String host, int port) {
+        return this.runningTunnels.keySet().stream()
+                .filter(tunnel -> tunnel.access().tunnelAddress().getHostString().equalsIgnoreCase(host) &&
+                        tunnel.access().tunnelAddress().getPort() == port)
+                .findFirst()
+                .orElse(null);
+    }
 }

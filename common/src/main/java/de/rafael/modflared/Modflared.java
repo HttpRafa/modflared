@@ -26,7 +26,7 @@ public class Modflared {
         TUNNEL_MANAGER.loadForcedTunnels();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            TUNNEL_MANAGER.closeTunnels();
+            TUNNEL_MANAGER.forceCloseTunnels();
             EXECUTOR.shutdownNow();
         }));
     }
