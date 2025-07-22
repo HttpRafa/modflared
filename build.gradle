@@ -46,11 +46,6 @@ allprojects {
         // for more information about repositories.
     }
 
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
-        options.release = 21
-    }
-
     java {
         withSourcesJar()
     }

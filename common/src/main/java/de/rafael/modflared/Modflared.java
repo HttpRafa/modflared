@@ -2,6 +2,7 @@ package de.rafael.modflared;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import de.rafael.modflared.api.ModflaredApi;
 import de.rafael.modflared.platform.LoaderPlatform;
 import de.rafael.modflared.tunnel.manager.TunnelManager;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ public class Modflared {
     public static void init() {
         TUNNEL_MANAGER.prepareBinary();
         TUNNEL_MANAGER.loadForcedTunnels();
+        ModflaredApi.IAPITUNNEL = TUNNEL_MANAGER;
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             TUNNEL_MANAGER.forceCloseTunnels();
