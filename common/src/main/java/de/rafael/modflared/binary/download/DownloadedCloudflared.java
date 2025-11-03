@@ -125,22 +125,21 @@ public class DownloadedCloudflared extends Cloudflared {
                 for (int i = 0; i < 4; i++) {
                     Modflared.LOGGER.info("Downloading cloudflared version {} from github. Attempt: {}", version, i + 1);
                     var downloadedFile = syncDownloadFile();
-                    Modflared.LOGGER.info("Downloaded file preparing cloudflared binary...");
                     var file = new File(TunnelManager.DATA_FOLDER, download.fileName());
-                    prepareFile(downloadedFile, file);
-
                     // Check if file is corrupt
                     Modflared.LOGGER.info("Checking file integrity");
-                    var provided = GithubAPI.FileHash.computeHash(file);
+                    var provided = GithubAPI.FileHash.computeHash(downloadedFile);
                     if(expected.compareTo(provided)) {
                         Modflared.LOGGER.info("Download finished of cloudflared version {}!", version);
+                        Modflared.LOGGER.info("Downloaded file preparing cloudflared binary...");
+                        prepareFile(downloadedFile, file);
                         return;
                     } else {
                         Modflared.LOGGER.warn("This downloaded file does not match with the file hash provided on GitHub.");
                         Modflared.LOGGER.warn("Expected {}, Provided: {}", expected.hash(), provided.hash());
-
-                        file.delete();
+                        downloadedFile.delete();
                     }
+
                 }
             } catch (InterruptedException exception) {
                 throw new IllegalStateException("Error while unpacking MacOS cloudflared download", exception);
