@@ -6,7 +6,7 @@ Automatically connects you to a [Cloudflare tunnel](https://developers.cloudflar
 To be able to use the mod you have to be on the operating system Windows, Linux, or MacOS.
 
 ## Other resources
-For more detailed instructions, you can also read Varun A's blog post. The blog post can be found [here](https://dacubeking.com/2024/02/28/Proxying-Minecraft.html).
+For more detailed instructions, you can read [Adalie's blog post](https://dacubeking.com/2024/02/28/Proxying-Minecraft.html).
 
 ## Configuring Cloudflared
 You need to set up cloudflare on your server for this to work. There's plenty of guides on how to do this elsewhere.  
