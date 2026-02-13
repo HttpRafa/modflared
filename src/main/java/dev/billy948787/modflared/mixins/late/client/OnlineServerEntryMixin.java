@@ -32,7 +32,7 @@ public abstract class OnlineServerEntryMixin {
     private GuiMultiplayer field_148303_c;
 
     @Unique
-    private static final ResourceLocation MODFLARED_INDICATOR_TEXTURE = new ResourceLocation(Modflared.MOD_ID, "textures/gui/indicator.png");
+    private static final ResourceLocation MODFLARED_INDICATOR_TEXTURE = new ResourceLocation(Modflared.MOD_ID, "textures/gui/icon/indicator.png");
 
     @Inject(method = "drawEntry", at = @At("TAIL"))
     public void drawEntry(int p_148279_1_, int p_148279_2_, int p_148279_3_, int p_148279_4_, int p_148279_5_, Tessellator p_148279_6_, int p_148279_7_, int p_148279_8_, boolean p_148279_9_, CallbackInfo ci) {

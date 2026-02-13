@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Implements(@Interface(iface = IConnectScreen.class, prefix = "connectScreen$"))
 @Mixin(GuiConnecting.class)
@@ -26,9 +27,9 @@ public abstract class ConnectScreenMixin extends GuiScreen implements IConnectSc
 
     @Shadow
     private NetworkManager field_146371_g;
-    
+
     @Inject(method = "drawScreen", at = @At("Tail"))
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+    public void drawScreen(int mouseX, int mouseY, float partialTicks, CallbackInfo ci) {
         if (this.modflared$status == null || this.field_146371_g != null) return;
 
         int y = this.height / 2 - 50;
