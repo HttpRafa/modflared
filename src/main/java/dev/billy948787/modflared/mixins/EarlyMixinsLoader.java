@@ -1,4 +1,4 @@
-package dev.billy948787.modflared.mixins.late;
+package dev.billy948787.modflared.mixins;
 
 import java.util.List;
 import java.util.Map;
@@ -8,7 +8,6 @@ import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
-import dev.billy948787.modflared.mixins.Mixins;
 
 @IFMLLoadingPlugin.MCVersion("1.7.10")
 public class EarlyMixinsLoader implements IFMLLoadingPlugin, IEarlyMixinLoader {
@@ -29,8 +28,7 @@ public class EarlyMixinsLoader implements IFMLLoadingPlugin, IEarlyMixinLoader {
     }
 
     @Override
-    public void injectData(Map<String, Object> data) {
-    }
+    public void injectData(Map<String, Object> data) {}
 
     @Override
     public String getAccessTransformerClass() {

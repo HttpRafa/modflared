@@ -1,4 +1,4 @@
-package dev.billy948787.modflared.mixins;
+package dev.billy948787.modflared.mixins.late;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
@@ -40,7 +40,7 @@ public abstract class OnlineServerEntryMixin {
 
     @Inject(method = "drawEntry", at = @At("TAIL"))
     public void drawEntry(int p_148279_1_, int p_148279_2_, int p_148279_3_, int p_148279_4_, int p_148279_5_,
-                          Tessellator p_148279_6_, int p_148279_7_, int p_148279_8_, boolean p_148279_9_, CallbackInfo ci) {
+        Tessellator p_148279_6_, int p_148279_7_, int p_148279_8_, boolean p_148279_9_, CallbackInfo ci) {
         TunnelStatus tunnelStatus = ((IServerData) this.field_148301_e).getTunnelStatus();
 
         if (tunnelStatus != null && tunnelStatus.state() == TunnelStatus.State.USE) {
