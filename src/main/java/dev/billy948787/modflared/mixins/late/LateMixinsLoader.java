@@ -1,10 +1,11 @@
-package dev.billy948787.modflared.mixins;
+package dev.billy948787.modflared.mixins.late;
 
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import dev.billy948787.modflared.mixins.Mixins;
 import org.jetbrains.annotations.NotNull;
 
 import com.gtnewhorizon.gtnhmixins.ILateMixinLoader;

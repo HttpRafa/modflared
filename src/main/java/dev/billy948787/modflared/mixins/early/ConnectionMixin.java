@@ -1,4 +1,4 @@
-package dev.billy948787.modflared.mixins.late;
+package dev.billy948787.modflared.mixins.early;
 
 import net.minecraft.network.NetworkManager;
 import net.minecraft.util.IChatComponent;

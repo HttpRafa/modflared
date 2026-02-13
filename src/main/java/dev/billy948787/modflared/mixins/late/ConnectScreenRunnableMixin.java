@@ -1,4 +1,4 @@
-package dev.billy948787.modflared.mixins.late.client;
+package dev.billy948787.modflared.mixins.late;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;

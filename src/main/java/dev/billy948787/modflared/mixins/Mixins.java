@@ -12,15 +12,14 @@ public enum Mixins implements IMixins {
     // You should declare all of your mixins early and late in this same enum
 
     MIXIN_EARLY(new MixinBuilder().setPhase(Phase.EARLY)
-        .addClientMixins("ServerDataMixin")),
+        .addClientMixins("ServerDataMixin", "ConnectionMixin")),
 
     MIXIN_LATE(new MixinBuilder().setPhase(Phase.LATE)
         .addClientMixins(
-            "ConnectionMixin",
-            "client.ConnectScreenMixin",
-            "client.ConnectScreenRunnableMixin",
-            "client.OnlineServerEntryMixin",
-            "client.ServerStatusPingerMixin"));
+            "ConnectScreenMixin",
+            "ConnectScreenRunnableMixin",
+            "OnlineServerEntryMixin",
+            "ServerStatusPingerMixin"));
 
     private final MixinBuilder builder;
 
