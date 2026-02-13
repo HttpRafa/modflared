@@ -1,22 +1,28 @@
 package dev.billy948787.modflared;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.SidedProxy;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import dev.billy948787.modflared.tunnel.manager.TunnelManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-@Mod(modid = Modflared.MODID, version = Tags.VERSION, name = "MyMod", acceptedMinecraftVersions = "[1.7.10]")
+@Mod(modid = Modflared.MOD_ID, version = Tags.VERSION, name = "Modflared", acceptedMinecraftVersions = "[1.7.10]", acceptableRemoteVersions = "*")
 public class Modflared {
+    public static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().serializeNulls().create();
 
-    public static final String MODID = "modflared";
-    public static final Logger LOG = LogManager.getLogger(MODID);
+    public static final String MOD_ID = "modflared";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    
+    public static final TunnelManager TUNNEL_MANAGER = new TunnelManager();
 
-    @SidedProxy(clientSide = "dev.billy948787.modflared.ClientProxy", serverSide = "dev.billy948787.mmodflared.CommonProxy")
+    @SidedProxy(clientSide = "dev.billy948787.modflared.ClientProxy", serverSide = "dev.billy948787.modflared.CommonProxy")
     public static CommonProxy proxy;
 
     @Mod.EventHandler
@@ -24,23 +30,5 @@ public class Modflared {
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         proxy.preInit(event);
-    }
-
-    @Mod.EventHandler
-    // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
-    public void init(FMLInitializationEvent event) {
-        proxy.init(event);
-    }
-
-    @Mod.EventHandler
-    // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
-    public void postInit(FMLPostInitializationEvent event) {
-        proxy.postInit(event);
-    }
-
-    @Mod.EventHandler
-    // register server commands in this event handler (Remove if not needed)
-    public void serverStarting(FMLServerStartingEvent event) {
-        proxy.serverStarting(event);
     }
 }

@@ -35,4 +35,5 @@
  */
 dependencies {
     //runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.69-GTNH:dev")
+    compileOnly 'org.jetbrains:annotations:24.0.1'
 }

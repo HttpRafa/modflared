@@ -1,8 +1,22 @@
 package dev.billy948787.modflared;
 
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+
 public class ClientProxy extends CommonProxy {
 
-    // Override CommonProxy methods here, if you want a different behaviour on the client (e.g. registering renders).
-    // Don't forget to call the super methods as well.
+    @Override
+    public void preInit(FMLPreInitializationEvent event) {
+        var configDir = event.getModConfigurationDirectory();
 
+        Modflared.TUNNEL_MANAGER.initDirectories();
+        Modflared.TUNNEL_MANAGER.prepareBinary();
+        Modflared.TUNNEL_MANAGER.loadForcedTunnels();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            Modflared.TUNNEL_MANAGER.closeTunnels();
+            Modflared.EXECUTOR.shutdownNow();
+        }));
+
+        super.preInit(event);
+    }
 }
