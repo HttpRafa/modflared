@@ -1,9 +1,9 @@
 package dev.billy948787.modflared.mixins;
 
+import javax.annotation.Nonnull;
+
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
-
-import javax.annotation.Nonnull;
 
 public enum Mixins implements IMixins {
 
@@ -11,19 +11,16 @@ public enum Mixins implements IMixins {
 
     // You should declare all of your mixins early and late in this same enum
 
-
-    MIXIN_EARLY(new MixinBuilder()
-        .setPhase(Phase.EARLY)
+    MIXIN_EARLY(new MixinBuilder().setPhase(Phase.EARLY)
         .addClientMixins("ServerDataMixin")),
 
-    MIXIN_LATE(new MixinBuilder()
-        .setPhase(Phase.LATE)
-        .addClientMixins("ConnectionMixin",
+    MIXIN_LATE(new MixinBuilder().setPhase(Phase.LATE)
+        .addClientMixins(
+            "ConnectionMixin",
             "client.ConnectScreenMixin",
             "client.ConnectScreenRunnableMixin",
             "client.OnlineServerEntryMixin",
             "client.ServerStatusPingerMixin"));
-
 
     private final MixinBuilder builder;
 

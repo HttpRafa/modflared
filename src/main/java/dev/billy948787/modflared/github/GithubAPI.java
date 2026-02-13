@@ -1,17 +1,5 @@
 package dev.billy948787.modflared.github;
 
-import com.github.bsideup.jabel.Desugar;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import dev.billy948787.modflared.Modflared;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +14,20 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
+
+import com.github.bsideup.jabel.Desugar;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import dev.billy948787.modflared.Modflared;
+
 public class GithubAPI {
 
     private static final String GITHUB_USER = "cloudflare";
@@ -37,7 +39,9 @@ public class GithubAPI {
 
     static {
         try {
-            GITHUB_API_ENDPOINT = URI.create("https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPOSITORY + "/releases/latest").toURL();
+            GITHUB_API_ENDPOINT = URI
+                .create("https://api.github.com/repos/" + GITHUB_USER + "/" + GITHUB_REPOSITORY + "/releases/latest")
+                .toURL();
         } catch (MalformedURLException exception) {
             Modflared.LOGGER.error("Failed to create url object of github endpoint.", exception);
         }
@@ -47,7 +51,8 @@ public class GithubAPI {
     public static @NotNull CompletableFuture<String> requestLatestVersion() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return getJsonFromEndpoint(GITHUB_API_ENDPOINT).get("tag_name").getAsString();
+                return getJsonFromEndpoint(GITHUB_API_ENDPOINT).get("tag_name")
+                    .getAsString();
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to get latest cloudflared version from github", throwable);
             }
@@ -58,7 +63,10 @@ public class GithubAPI {
     public static @NotNull CompletableFuture<FileHash> requestFileHash(String filename) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return extractHashes(getJsonFromEndpoint(GITHUB_API_ENDPOINT)).stream().filter(item -> item.file.equals(filename)).findFirst().get();
+                return extractHashes(getJsonFromEndpoint(GITHUB_API_ENDPOINT)).stream()
+                    .filter(item -> item.file.equals(filename))
+                    .findFirst()
+                    .get();
             } catch (Throwable throwable) {
                 throw new IllegalStateException("Failed to get file hash from github", throwable);
             }
@@ -66,17 +74,24 @@ public class GithubAPI {
     }
 
     private static @NotNull @Unmodifiable List<FileHash> extractHashes(@NotNull JsonObject data) {
-        return Arrays.stream(data.get("body").getAsString().split("\n")).filter(item -> item.startsWith("cloudflared-") && item.contains(":")).map(item -> {
-            var fileData = item.split(":");
-            return new FileHash(fileData[0].trim(), fileData[1].trim());
-        }).collect(Collectors.toList());
+        return Arrays.stream(
+            data.get("body")
+                .getAsString()
+                .split("\n"))
+            .filter(item -> item.startsWith("cloudflared-") && item.contains(":"))
+            .map(item -> {
+                var fileData = item.split(":");
+                return new FileHash(fileData[0].trim(), fileData[1].trim());
+            })
+            .collect(Collectors.toList());
     }
 
     private static JsonObject getJsonFromEndpoint(@NotNull URL url) throws IOException {
         URLConnection connection = url.openConnection();
         InputStream inputStream = connection.getInputStream();
 
-        return JSON_PARSER.parse(new InputStreamReader(inputStream)).getAsJsonObject();
+        return JSON_PARSER.parse(new InputStreamReader(inputStream))
+            .getAsJsonObject();
     }
 
     public @Desugar record FileHash(String file, String hash) {

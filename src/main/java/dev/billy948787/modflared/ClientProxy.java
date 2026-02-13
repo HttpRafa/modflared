@@ -12,10 +12,11 @@ public class ClientProxy extends CommonProxy {
         Modflared.TUNNEL_MANAGER.prepareBinary();
         Modflared.TUNNEL_MANAGER.loadForcedTunnels();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Modflared.TUNNEL_MANAGER.closeTunnels();
-            Modflared.EXECUTOR.shutdownNow();
-        }));
+        Runtime.getRuntime()
+            .addShutdownHook(new Thread(() -> {
+                Modflared.TUNNEL_MANAGER.closeTunnels();
+                Modflared.EXECUTOR.shutdownNow();
+            }));
 
         super.preInit(event);
     }

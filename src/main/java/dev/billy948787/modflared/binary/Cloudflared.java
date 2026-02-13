@@ -1,11 +1,11 @@
 package dev.billy948787.modflared.binary;
 
+import java.util.concurrent.CompletableFuture;
+
 import dev.billy948787.modflared.Modflared;
 import dev.billy948787.modflared.binary.download.DownloadedCloudflared;
 import dev.billy948787.modflared.binary.local.LocalCloudflared;
 import dev.billy948787.modflared.tunnel.RunningTunnel;
-
-import java.util.concurrent.CompletableFuture;
 
 public abstract class Cloudflared {
 
@@ -28,7 +28,8 @@ public abstract class Cloudflared {
 
     public RunningTunnel createTunnel(RunningTunnel.Access access) {
         try {
-            return RunningTunnel.createTunnel(this, access).get();
+            return RunningTunnel.createTunnel(this, access)
+                .get();
         } catch (Exception exception) {
             Modflared.LOGGER.error("Failed to create tunnel", exception);
             return null;

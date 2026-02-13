@@ -1,13 +1,5 @@
 package dev.billy948787.modflared.tunnel;
 
-import com.github.bsideup.jabel.Desugar;
-import dev.billy948787.modflared.Modflared;
-import dev.billy948787.modflared.binary.Cloudflared;
-import dev.billy948787.modflared.tunnel.manager.TunnelManager;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.lwjgl.LWJGLUtil;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,14 +7,26 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.CRC32;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.lwjgl.LWJGLUtil;
+
+import com.github.bsideup.jabel.Desugar;
+
+import dev.billy948787.modflared.Modflared;
+import dev.billy948787.modflared.binary.Cloudflared;
+import dev.billy948787.modflared.tunnel.manager.TunnelManager;
+
 public @Desugar record RunningTunnel(Access access, Process process) {
 
-    public static @NotNull CompletableFuture<RunningTunnel> createTunnel(@NotNull Cloudflared binary, @NotNull Access access) {
+    public static @NotNull CompletableFuture<RunningTunnel> createTunnel(@NotNull Cloudflared binary,
+        @NotNull Access access) {
         var future = new CompletableFuture<RunningTunnel>();
         Modflared.EXECUTOR.execute(() -> {
             try {
                 ProcessBuilder processBuilder = new ProcessBuilder(binary.buildCommand(access));
-                // Since LINUX, MACOSX, and WINDOWS are the only options, this will work to only set the directory for Linux and MacOS
+                // Since LINUX, MACOSX, and WINDOWS are the only options, this will work to only set the directory for
+                // Linux and MacOS
                 if (LWJGLUtil.getPlatform() != LWJGLUtil.PLATFORM_WINDOWS) {
                     processBuilder.directory(TunnelManager.DATA_FOLDER);
                 }
@@ -35,9 +39,11 @@ public @Desugar record RunningTunnel(Access access, Process process) {
                 while ((line = reader.readLine()) != null) {
                     TunnelManager.CLOUDFLARE_LOGGER.info(line);
                     if (line.contains("Start Websocket listener")) {
-                        // Wait for the websocket to start (this is a hacky solution, but I don't really see a better way)
+                        // Wait for the websocket to start (this is a hacky solution, but I don't really see a better
+                        // way)
                         Thread.sleep(250);
-                        future.complete(new RunningTunnel(access, process)); // Tunnel was started. Return running tunnel to minecraft client
+                        future.complete(new RunningTunnel(access, process)); // Tunnel was started. Return running
+                                                                             // tunnel to minecraft client
                     }
                 }
             } catch (IOException | InterruptedException exception) {
@@ -53,13 +59,17 @@ public @Desugar record RunningTunnel(Access access, Process process) {
     }
 
     public @Desugar record Access(String protocol, String hostname, InetSocketAddress tunnelAddress) {
+
         @Contract("_ -> new")
         public static @NotNull Access localWithRandomPort(String host) {
             return new Access("tcp", host, new InetSocketAddress("127.0.0.1", computePort(host)));
         }
 
         public String @NotNull [] command(@NotNull String fileName, boolean prefix) {
-            return new String[]{(prefix && LWJGLUtil.getPlatform() != LWJGLUtil.PLATFORM_WINDOWS ? "./" : "") + fileName, "access", protocol, "--hostname", hostname, "--url", tunnelAddress.getHostString() + ":" + tunnelAddress.getPort()};
+            return new String[] {
+                (prefix && LWJGLUtil.getPlatform() != LWJGLUtil.PLATFORM_WINDOWS ? "./" : "") + fileName, "access",
+                protocol, "--hostname", hostname, "--url",
+                tunnelAddress.getHostString() + ":" + tunnelAddress.getPort() };
         }
 
         public static int computePort(@NotNull String host) {

@@ -1,8 +1,8 @@
 package dev.billy948787.modflared.binary.download;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Arrays;
+
+import org.jetbrains.annotations.NotNull;
 
 public enum CloudflaredDownload {
 
@@ -28,13 +28,18 @@ public enum CloudflaredDownload {
     }
 
     public static @NotNull CloudflaredDownload find() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        String arch = System.getProperty("os.arch").toLowerCase();
-        var download = Arrays.stream(CloudflaredDownload.values()).filter(item -> osName.contains(item.osName) && arch.contains(item.arch)).findFirst();
+        String osName = System.getProperty("os.name")
+            .toLowerCase();
+        String arch = System.getProperty("os.arch")
+            .toLowerCase();
+        var download = Arrays.stream(CloudflaredDownload.values())
+            .filter(item -> osName.contains(item.osName) && arch.contains(item.arch))
+            .findFirst();
         if (download.isPresent()) {
             return download.get();
         } else {
-            throw new IllegalStateException("Cloudflared could not be downloaded because no binary file was found for the current operating system");
+            throw new IllegalStateException(
+                "Cloudflared could not be downloaded because no binary file was found for the current operating system");
         }
     }
 

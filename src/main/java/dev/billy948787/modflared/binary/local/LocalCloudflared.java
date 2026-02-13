@@ -1,14 +1,15 @@
 package dev.billy948787.modflared.binary.local;
 
-import dev.billy948787.modflared.Modflared;
-import dev.billy948787.modflared.binary.Cloudflared;
-import dev.billy948787.modflared.tunnel.RunningTunnel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import dev.billy948787.modflared.Modflared;
+import dev.billy948787.modflared.binary.Cloudflared;
+import dev.billy948787.modflared.tunnel.RunningTunnel;
 
 public class LocalCloudflared extends Cloudflared {
 

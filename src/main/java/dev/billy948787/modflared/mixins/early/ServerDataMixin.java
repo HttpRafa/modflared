@@ -1,9 +1,15 @@
 package dev.billy948787.modflared.mixins.early;
 
+import net.minecraft.client.multiplayer.ServerData;
+
+import org.spongepowered.asm.mixin.Implements;
+import org.spongepowered.asm.mixin.Interface;
+import org.spongepowered.asm.mixin.Intrinsic;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+
 import dev.billy948787.modflared.interfaces.mixin.IServerData;
 import dev.billy948787.modflared.tunnel.TunnelStatus;
-import net.minecraft.client.multiplayer.ServerData;
-import org.spongepowered.asm.mixin.*;
 
 @Implements(@Interface(iface = IServerData.class, prefix = "serverData$"))
 @Mixin(ServerData.class)

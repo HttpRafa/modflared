@@ -1,26 +1,10 @@
 package dev.billy948787.modflared.tunnel.manager;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import cpw.mods.fml.common.Loader;
-import dev.billy948787.modflared.Modflared;
-import dev.billy948787.modflared.binary.Cloudflared;
-import dev.billy948787.modflared.interfaces.mixin.IConnection;
-import dev.billy948787.modflared.tunnel.RunningTunnel;
-import dev.billy948787.modflared.tunnel.TunnelStatus;
-import net.minecraft.client.multiplayer.ServerAddress;
-import net.minecraft.network.NetworkManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.InitialDirContext;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -29,9 +13,37 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.InitialDirContext;
+
+import net.minecraft.client.multiplayer.ServerAddress;
+import net.minecraft.network.NetworkManager;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
+
+import cpw.mods.fml.common.Loader;
+import dev.billy948787.modflared.Modflared;
+import dev.billy948787.modflared.binary.Cloudflared;
+import dev.billy948787.modflared.interfaces.mixin.IConnection;
+import dev.billy948787.modflared.tunnel.RunningTunnel;
+import dev.billy948787.modflared.tunnel.TunnelStatus;
+
 public class TunnelManager {
 
-    public static final File BASE_FOLDER = new File(Loader.instance().getConfigDir().getParent(), "modflared");
+    public static final File BASE_FOLDER = new File(
+        Loader.instance()
+            .getConfigDir()
+            .getParent(),
+        "modflared");
     public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
     public static final File FORCED_TUNNELS_FILE = new File(BASE_FOLDER, "forced_tunnels.json");
 
@@ -64,7 +76,10 @@ public class TunnelManager {
     }
 
     public void closeTunnel(@NotNull RunningTunnel runningTunnel) {
-        Modflared.LOGGER.info("Stopping tunnel to {}", runningTunnel.access().tunnelAddress());
+        Modflared.LOGGER.info(
+            "Stopping tunnel to {}",
+            runningTunnel.access()
+                .tunnelAddress());
         this.runningTunnels.remove(runningTunnel);
         runningTunnel.closeTunnel();
     }
@@ -76,7 +91,8 @@ public class TunnelManager {
     }
 
     /**
-     * Check the TXT records for the server to see if it should use a tunnel We check for a TXT record on the same subdomain as
+     * Check the TXT records for the server to see if it should use a tunnel We check for a TXT record on the same
+     * subdomain as
      * the server we are connecting to.
      * <p>
      * This is done by checking if the server has a TXT record with the value "cloudflared-use-tunnel" or
@@ -85,7 +101,8 @@ public class TunnelManager {
      * If the server has the TXT record "cloudflared-route=<route>", it will use the route as the route for the tunnel.
      * </li>
      * <li>
-     * If the server has the TXT record "cloudflared-use-tunnel", it will use the server address as the route for the tunnel
+     * If the server has the TXT record "cloudflared-use-tunnel", it will use the server address as the route for the
+     * tunnel
      * </li>
      * <li>
      * If the server has neither of the TXT records, it will not use a tunnel (unless it is in the forced tunnels list)
@@ -95,7 +112,10 @@ public class TunnelManager {
      * @throws IOException If an error occurs while resolving the DNS TXT records
      */
     public @Nullable String shouldUseTunnel(String host) throws IOException {
-        if (forcedTunnels.stream().anyMatch(serverAddress -> serverAddress.getIP().equalsIgnoreCase(host))) {
+        if (forcedTunnels.stream()
+            .anyMatch(
+                serverAddress -> serverAddress.getIP()
+                    .equalsIgnoreCase(host))) {
             return host;
         }
 
@@ -107,7 +127,7 @@ public class TunnelManager {
             var properties = new Properties();
             properties.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
             InitialDirContext dirContext = new InitialDirContext(properties);
-            Attributes attributes = dirContext.getAttributes(host, new String[]{"TXT"});
+            Attributes attributes = dirContext.getAttributes(host, new String[] { "TXT" });
             Attribute txtRecords = attributes.get("TXT");
 
             if (txtRecords != null) {
@@ -125,13 +145,15 @@ public class TunnelManager {
             Modflared.LOGGER.error("Failed to resolve DNS TXT entries: " + exception.getMessage(), exception);
 
             Modflared.LOGGER.error(
-                "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not " +
-                    "using a tunnel", host);
+                "Modflared was unable to determine if a tunnel should be used for {} and is defaulting to not "
+                    + "using a tunnel",
+                host);
             Modflared.LOGGER.error(
-                "If you believe you need a tunnel for this server, please add it to the forced tunnels list in " +
-                    "the modflared folder in your game directory.");
-            Modflared.LOGGER.error("For more information, please see the modflared documentation at " +
-                "https://github.com/HttpRafa/modflared?tab=readme-ov-file#versions-100-and-onward");
+                "If you believe you need a tunnel for this server, please add it to the forced tunnels list in "
+                    + "the modflared folder in your game directory.");
+            Modflared.LOGGER.error(
+                "For more information, please see the modflared documentation at "
+                    + "https://github.com/HttpRafa/modflared?tab=readme-ov-file#versions-100-and-onward");
 
             throw new IOException(exception);
         }
@@ -145,12 +167,14 @@ public class TunnelManager {
      * @see <a href="https://stackoverflow.com/a/57612280">How do you tell whether a string is an IP or a hostname</a>
      */
     private boolean isHost(String ip) {
-        if (ip.trim().equalsIgnoreCase("localhost")) return false;
+        if (ip.trim()
+            .equalsIgnoreCase("localhost")) return false;
         try {
             InetAddress[] ips = InetAddress.getAllByName(ip);
             // #getAllByName will return an InetAddress that is the same as the input if it is an IP address,
             // so we can check if the input is an IP address by comparing the InetAddress to the input
-            return !(ips.length == 1 && ips[0].getHostAddress().equals(ip));
+            return !(ips.length == 1 && ips[0].getHostAddress()
+                .equals(ip));
         } catch (UnknownHostException e) {
             return true;
         }
@@ -162,7 +186,6 @@ public class TunnelManager {
             tunnelConnection.setRunningTunnel(status.runningTunnel());
         }
     }
-
 
     public TunnelStatus handleConnect(@NotNull InetSocketAddress address) {
         if (this.cloudflared.get() == null) {
@@ -188,21 +211,23 @@ public class TunnelManager {
     }
 
     public void prepareBinary() {
-        Cloudflared.create().whenComplete((version, throwable) -> {
-            if (throwable != null) {
-                Modflared.LOGGER.error(throwable.getMessage(), throwable);
-            } else {
-                version.prepare().whenComplete((unused, throwable1) -> {
-                    if (throwable1 != null) {
-                        Modflared.LOGGER.error(throwable1.getMessage(), throwable1);
-                        HAS_ERROR = true;
-                    } else {
-                        HAS_ERROR = false;
-                        this.cloudflared.set(version);
-                    }
-                });
-            }
-        });
+        Cloudflared.create()
+            .whenComplete((version, throwable) -> {
+                if (throwable != null) {
+                    Modflared.LOGGER.error(throwable.getMessage(), throwable);
+                } else {
+                    version.prepare()
+                        .whenComplete((unused, throwable1) -> {
+                            if (throwable1 != null) {
+                                Modflared.LOGGER.error(throwable1.getMessage(), throwable1);
+                                HAS_ERROR = true;
+                            } else {
+                                HAS_ERROR = false;
+                                this.cloudflared.set(version);
+                            }
+                        });
+                }
+            });
     }
 
     public void loadForcedTunnels() {
@@ -212,8 +237,8 @@ public class TunnelManager {
         }
 
         try {
-            JsonArray entriesArray = JSON_PARSER.parse(
-                new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
+            JsonArray entriesArray = JSON_PARSER.parse(new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE)))
+                .getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
                 var serverString = jsonElement.getAsString();
 

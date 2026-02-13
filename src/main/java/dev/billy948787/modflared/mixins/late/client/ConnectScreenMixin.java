@@ -1,16 +1,23 @@
 package dev.billy948787.modflared.mixins.late.client;
 
-import dev.billy948787.modflared.interfaces.mixin.IConnectScreen;
-import dev.billy948787.modflared.tunnel.TunnelStatus;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.util.IChatComponent;
+
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Implements;
+import org.spongepowered.asm.mixin.Interface;
+import org.spongepowered.asm.mixin.Intrinsic;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import dev.billy948787.modflared.interfaces.mixin.IConnectScreen;
+import dev.billy948787.modflared.tunnel.TunnelStatus;
 
 @Implements(@Interface(iface = IConnectScreen.class, prefix = "connectScreen$"))
 @Mixin(GuiConnecting.class)
