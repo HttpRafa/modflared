@@ -1,0 +1,15 @@
+name: build_and_test_and_publish
+on:
+  push:
+    tags: [ '*' ]
+permissions:
+  contents: write
+jobs:
+  build-and-test:
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
+    secrets: inherit
+  build_publish:
+    needs: build-and-test
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
+    secrets: 
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_UPLOAD_TOKEN }}
