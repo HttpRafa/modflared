@@ -8,8 +8,34 @@ jobs:
   build-and-test:
     uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
     secrets: inherit
-  build_publish:
+  publish:
     needs: build-and-test
-    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
-    secrets: 
-      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_UPLOAD_TOKEN }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: Rf3eVYac
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-dependencies: |
+            ghjoiQAl(required)
+
+          name: "Release ${{ github.ref_name }}"
+          version: ${{ github.ref_name }}
+
+          github-tag: ${{ github.ref_name }}
+          github-generate-changelog: true
+          github-draft: false
+          github-prerelease: false
+          github-commitish: dev
+          github-discussion: Announcements
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          loaders: forge
+          game-versions: 1.7.10
+          version-type: release
+          java: 25
+
+          curseforge-id: 1461983
+          curseforge-token: ${{ secrets.CURSEFORGE_UPLOAD_TOKEN }}
+          curseforge-dependencies: |
+            826970(required)
