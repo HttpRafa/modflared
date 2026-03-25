@@ -2,7 +2,7 @@ package dev.httxrafa.modflared.mixin.client;
 
 import dev.httxrafa.modflared.interfaces.mixin.IConnectScreen;
 import dev.httxrafa.modflared.tunnel.TunnelStatus;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.ConnectScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -32,8 +32,8 @@ public abstract class ConnectScreenMixin extends Screen implements IConnectScree
     @Shadow
     private Component status;
 
-    @Inject(method = "render", at = @At("TAIL"))
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         // This screen starts drawing before the connection is established, so we need to check if the status is null
         // We're also checking if the status is the default "Connecting..." status, because we know we've connected to the server
         // when the status changes
@@ -45,7 +45,7 @@ public abstract class ConnectScreenMixin extends Screen implements IConnectScree
 
         for (Component status : this.modflared$status.generateFeedback()) {
             y += 10;
-            graphics.drawCenteredString(this.font, status, this.width / 2, y, 16777215);
+            graphics.centeredText(this.font, status, this.width / 2, y, 16777215);
         }
     }
 

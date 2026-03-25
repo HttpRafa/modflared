@@ -4,7 +4,7 @@ import dev.httxrafa.modflared.Modflared;
 import dev.httxrafa.modflared.interfaces.mixin.IServerData;
 import dev.httxrafa.modflared.tunnel.TunnelStatus;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -26,8 +26,8 @@ public abstract class OnlineServerEntryMixin extends ServerSelectionList.Entry {
     @Unique
     private static final Identifier MODFLARED_INDICATOR_TEXTURE = Identifier.fromNamespaceAndPath(Modflared.MOD_ID, "icon/indicator");
 
-    @Inject(method = "renderContent", at = @At("TAIL"))
-    public void renderContent(GuiGraphics graphics, int mouseX, int mouseY, boolean hovered, float deltaTicks, CallbackInfo callbackInfo) {
+    @Inject(method = "extractContent", at = @At("TAIL"))
+    public void extractContent(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean hovered, float deltaTicks, CallbackInfo callbackInfo) {
         var tunnelStatus = ((IServerData) serverData).getTunnelStatus();
         if(tunnelStatus != null && tunnelStatus.state() == TunnelStatus.State.USE) {
             int xOffset = this.getContentWidth() - 15;
