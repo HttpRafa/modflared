@@ -13,7 +13,7 @@ jobs:
       matrix:
         # Use these Java versions
         java: [
-          21,    # Current Java LTS & minimum supported by Minecraft
+          25,    # Current Java LTS & minimum supported by Minecraft
         ]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
@@ -33,14 +33,14 @@ jobs:
       - name: build
         run: ./gradlew build
       - name: upload to modrinth
-        if: "contains(github.ref, '1.21.11') && !contains(github.event.head_commit.message, 'upload skip')"
+        if: "contains(github.ref, '26.1') && !contains(github.event.head_commit.message, 'upload skip')"
         run: ./gradlew modrinth
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_UPLOAD_TOKEN }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_EVENT_RAW_PATH: ${{ github.event_path }}
       - name: upload to curseforge
-        if: "contains(github.ref, '1.21.11') && !contains(github.event.head_commit.message, 'upload skip')"
+        if: "contains(github.ref, '26.1') && !contains(github.event.head_commit.message, 'upload skip')"
         run: ./gradlew publishCurseForge
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_UPLOAD_TOKEN }}
