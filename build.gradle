@@ -218,7 +218,8 @@ static String generateChangelog() {
         for (JsonElement commit : commits) {
             JsonObject object = commit.getAsJsonObject();
             builder.append("- ");
-            builder.append('[').append(object.get("id").getAsString(), 0, 8).append(']').append('(').append(object.get("url").getAsString()).append(')');
+            builder.append('[').append(object.get("id").getAsString(), 0, 8).append(']')
+                    .append('(').append(object.get("url").getAsString()).append(')');
             builder.append(' ');
             builder.append(object.get("message").getAsString().split("\n")[0]);
             builder.append(" - ");
