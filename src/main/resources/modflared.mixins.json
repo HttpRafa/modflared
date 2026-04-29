@@ -1,21 +1,18 @@
 {
   "required": true,
+  "minVersion": "0.8",
   "package": "dev.httxrafa.modflared.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "modflared.refmap.json",
   "mixins": [
-    "ConnectionMixin",
-    "client.ConnectScreenRunnableMixin"
+    "NetworkManagerMixin",
+    "client.GuiConnectingMixin",
+    "client.GuiConnectingThreadMixin",
+    "client.ServerDataMixin",
+    "client.ServerPingerMixin"
   ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
-  },
-  "client": [
-    "client.ConnectScreenMixin",
-    "client.OnlineServerEntryMixin",
-    "client.ServerDataMixin",
-    "client.ServerStatusPingerMixin"
-  ]
+  }
 }
