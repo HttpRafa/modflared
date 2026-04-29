@@ -20,9 +20,10 @@ public abstract class Cloudflared {
     public abstract String[] buildCommand(RunningTunnel.Access access);
 
     public static CompletableFuture<Cloudflared> create() {
-        var local = LocalCloudflared.tryCreate();
-        if(local != null) return CompletableFuture.completedFuture(local);
-
+        Cloudflared local = LocalCloudflared.tryCreate();
+        if(local != null) {
+            return CompletableFuture.completedFuture(local);
+        }
         return DownloadedCloudflared.tryCreate();
     }
 

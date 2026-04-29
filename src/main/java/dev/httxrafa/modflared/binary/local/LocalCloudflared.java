@@ -3,8 +3,6 @@ package dev.httxrafa.modflared.binary.local;
 import dev.httxrafa.modflared.Modflared;
 import dev.httxrafa.modflared.binary.Cloudflared;
 import dev.httxrafa.modflared.tunnel.RunningTunnel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -22,20 +20,20 @@ public class LocalCloudflared extends Cloudflared {
     }
 
     @Override
-    public String[] buildCommand(RunningTunnel.@NotNull Access access) {
+    public String[] buildCommand(RunningTunnel.Access access) {
         return access.command("cloudflared", false);
     }
 
-    public static @Nullable Cloudflared tryCreate() {
+    public static Cloudflared tryCreate() {
         // Check if cloudflared is already installed on the system
         try {
-            var builder = new ProcessBuilder("cloudflared", "--version");
-            var process = builder.start();
-            var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            ProcessBuilder builder = new ProcessBuilder("cloudflared", "--version");
+            Process process = builder.start();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String versionString = reader.readLine();
             String version = versionString.split(" ")[2];
-            Modflared.LOGGER.info("Cloudflared output: {}", versionString);
-            Modflared.LOGGER.info("Cloudflared version {} is already installed on the system", version);
+            Modflared.LOGGER.info("Cloudflared output: " + versionString);
+            Modflared.LOGGER.info("Cloudflared version " + version + " is already installed on the system");
             return new LocalCloudflared(version);
         } catch (Throwable ignored) {
             Modflared.LOGGER.info("Cloudflared is not installed on the system. Downloading it if necessary...");

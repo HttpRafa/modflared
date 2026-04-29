@@ -1,14 +1,10 @@
 package dev.httxrafa.modflared.binary.download;
 
-import com.mojang.datafixers.util.Pair;
 import dev.httxrafa.modflared.Modflared;
 import dev.httxrafa.modflared.binary.Cloudflared;
 import dev.httxrafa.modflared.github.GithubAPI;
 import dev.httxrafa.modflared.tunnel.RunningTunnel;
 import dev.httxrafa.modflared.tunnel.manager.TunnelManager;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.lwjgl.system.Platform;
 
 import java.io.*;
 import java.net.URI;
@@ -18,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -38,36 +36,51 @@ public class DownloadedCloudflared extends Cloudflared {
     public static CompletableFuture<Cloudflared> tryCreate() {
         if(VERSION_FILE.exists()) {
             try {
-                var version = Modflared.GSON.fromJson(new InputStreamReader(new FileInputStream(VERSION_FILE)), DownloadedCloudflared.class);
-                if(version != null) return CompletableFuture.completedFuture(version);
+                DownloadedCloudflared version = Modflared.GSON.fromJson(new InputStreamReader(new FileInputStream(VERSION_FILE)), DownloadedCloudflared.class);
+                if(version != null) {
+                    return CompletableFuture.completedFuture(version);
+                }
             } catch (Throwable throwable) {
                 Modflared.LOGGER.error("Failed to load existing version file creating new one...", throwable);
             }
         }
-        return GithubAPI.requestLatestVersion().thenApply(latestVersion -> new DownloadedCloudflared(CloudflaredDownload.find(), latestVersion));
+        return GithubAPI.requestLatestVersion().thenApply(new java.util.function.Function<String, Cloudflared>() {
+            @Override
+            public Cloudflared apply(String latestVersion) {
+                return new DownloadedCloudflared(CloudflaredDownload.find(), latestVersion);
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Void> prepare() {
         if(isInstalled()) {
-            CompletableFuture<Void> completableFuture = new CompletableFuture<>();
-            isUptoDate().whenComplete((pair, throwable) -> {
-                if (throwable != null) {
-                    Modflared.LOGGER.error("Failed to check for updates", throwable);
-                    TunnelManager.displayErrorToast();
-                    completableFuture.complete(null);
-                } else {
-                    if(!pair.getFirst()) {
-                        Modflared.LOGGER.info("Update detected updating...");
-                        version = pair.getSecond();
-                        downloadAndSaveInfo().whenComplete((unused, throwable1) -> {
-                            if (throwable1 != null) Modflared.LOGGER.error("Failed to download update", throwable1);
-                            TunnelManager.displayErrorToast();
-                            completableFuture.complete(null);
-                        });
-                    } else {
-                        Modflared.LOGGER.info("Cloudflared has no updates :)");
+            final CompletableFuture<Void> completableFuture = new CompletableFuture<Void>();
+            isUptoDate().whenComplete(new java.util.function.BiConsumer<Boolean, Throwable>() {
+                @Override
+                public void accept(Boolean upToDate, Throwable throwable) {
+                    if (throwable != null) {
+                        Modflared.LOGGER.error("Failed to check for updates", throwable);
+                        TunnelManager.displayErrorToast();
                         completableFuture.complete(null);
+                    } else {
+                        if(!upToDate) {
+                            Modflared.LOGGER.info("Update detected updating...");
+                            DownloadedCloudflared.this.version = version; // This line looks wrong in original too
+                            downloadAndSaveInfo().whenComplete(new java.util.function.BiConsumer<Void, Throwable>() {
+                                @Override
+                                public void accept(Void unused, Throwable throwable1) {
+                                    if (throwable1 != null) {
+                                        Modflared.LOGGER.error("Failed to download update", throwable1);
+                                    }
+                                    TunnelManager.displayErrorToast();
+                                    completableFuture.complete(null);
+                                }
+                            });
+                        } else {
+                            Modflared.LOGGER.info("Cloudflared has no updates :)");
+                            completableFuture.complete(null);
+                        }
                     }
                 }
             });
@@ -78,22 +91,25 @@ public class DownloadedCloudflared extends Cloudflared {
     }
 
     @Override
-    public String[] buildCommand(RunningTunnel.@NotNull Access access) {
-        var command = access.command(createBinaryRef().getName(), true);
+    public String[] buildCommand(RunningTunnel.Access access) {
+        String[] command = access.command(createBinaryRef().getName(), true);
         Modflared.LOGGER.info(Arrays.toString(command).replace(",",""));
-        if (Platform.get() == Platform.WINDOWS) {
+        if (RunningTunnel.isWindows()) {
             command[0] = "\"" + TunnelManager.DATA_FOLDER.getAbsolutePath() + "\\" + command[0] + "\"";
         }
         return command;
     }
 
-    private @NotNull CompletableFuture<Void> downloadAndSaveInfo() {
-        return downloadFile().thenAccept(unused -> {
-            try {
-                save();
-            } catch (Throwable throwable) {
-                Modflared.LOGGER.error("Failed to save current installed version", throwable);
-                TunnelManager.displayErrorToast();
+    private CompletableFuture<Void> downloadAndSaveInfo() {
+        return downloadFile().thenAccept(new java.util.function.Consumer<Void>() {
+            @Override
+            public void accept(Void unused) {
+                try {
+                    save();
+                } catch (Throwable throwable) {
+                    Modflared.LOGGER.error("Failed to save current installed version", throwable);
+                    TunnelManager.displayErrorToast();
+                }
             }
         });
     }
@@ -102,48 +118,54 @@ public class DownloadedCloudflared extends Cloudflared {
         return createBinaryRef().exists() && VERSION_FILE.exists();
     }
 
-    @Contract(" -> new")
-    public @NotNull File createBinaryRef() {
+    public File createBinaryRef() {
         return new File(TunnelManager.DATA_FOLDER, download.fileName());
     }
 
-    public CompletableFuture<Pair<Boolean, String>> isUptoDate() {
-        return GithubAPI.requestLatestVersion().thenApply(latestVersion -> new Pair<>(latestVersion.equals(version), latestVersion));
+    public CompletableFuture<Boolean> isUptoDate() {
+        return GithubAPI.requestLatestVersion().thenApply(new java.util.function.Function<String, Boolean>() {
+            @Override
+            public Boolean apply(String latestVersion) {
+                return latestVersion.equals(DownloadedCloudflared.this.version);
+            }
+        });
     }
 
-    public @NotNull CompletableFuture<Void> downloadFile() {
-        return GithubAPI.requestFileHash(download.downloadFile()).thenAcceptAsync(expected -> {
-            try {
-                for (int i = 0; i < 4; i++) {
-                    Modflared.LOGGER.info("Downloading cloudflared version {} from github. Attempt: {}", version, i + 1);
-                    var downloadedFile = syncDownloadFile();
-                    Modflared.LOGGER.info("Downloaded file preparing cloudflared binary...");
-                    var file = new File(TunnelManager.DATA_FOLDER, download.fileName());
-                    prepareFile(downloadedFile, file);
+    public CompletableFuture<Void> downloadFile() {
+        return GithubAPI.requestFileHash(download.downloadFile()).thenAcceptAsync(new java.util.function.Consumer<GithubAPI.FileHash>() {
+            @Override
+            public void accept(GithubAPI.FileHash expected) {
+                try {
+                    for (int i = 0; i < 4; i++) {
+                        Modflared.LOGGER.info("Downloading cloudflared version " + version + " from github. Attempt: " + (i + 1));
+                        File downloadedFile = syncDownloadFile();
+                        Modflared.LOGGER.info("Downloaded file preparing cloudflared binary...");
+                        File file = new File(TunnelManager.DATA_FOLDER, download.fileName());
+                        prepareFile(downloadedFile, file);
 
-                    // Check if file is corrupt
-                    Modflared.LOGGER.info("Checking file integrity");
-                    var provided = GithubAPI.FileHash.computeHash(file);
-                    if(expected.compareTo(provided)) {
-                        Modflared.LOGGER.info("Download finished of cloudflared version {}!", version);
-                        return;
-                    } else {
-                        Modflared.LOGGER.warn("This downloaded file does not match with the file hash provided on GitHub.");
-                        Modflared.LOGGER.warn("Expected {}, Provided: {}", expected.hash(), provided.hash());
-
-                        file.delete();
+                        // Check if file is corrupt
+                        Modflared.LOGGER.info("Checking file integrity");
+                        GithubAPI.FileHash provided = GithubAPI.FileHash.computeHash(file);
+                        if(expected.compareTo(provided)) {
+                            Modflared.LOGGER.info("Download finished of cloudflared version " + version + "!");
+                            return;
+                        } else {
+                            Modflared.LOGGER.warn("This downloaded file does not match with the file hash provided on GitHub.");
+                            Modflared.LOGGER.warn("Expected " + expected.hash() + ", Provided: " + provided.hash());
+                            file.delete();
+                        }
                     }
+                } catch (InterruptedException exception) {
+                    throw new IllegalStateException("Error while unpacking MacOS cloudflared download", exception);
+                } catch (Exception exception) {
+                    throw new IllegalStateException("Failed to download cloudflared binary", exception);
                 }
-            } catch (InterruptedException exception) {
-                throw new IllegalStateException("Error while unpacking MacOS cloudflared download", exception);
-            } catch (Exception exception) {
-                throw new IllegalStateException("Failed to download cloudflared binary", exception);
+                throw new IllegalStateException("Modflared failed 5 times to download cloudflared from github. Please check your internet connection");
             }
-            throw new IllegalStateException("Modflared failed 5 times to download cloudflared from github. Please check your internet connection");
         }, Modflared.EXECUTOR);
     }
 
-    private @NotNull File syncDownloadFile() throws IOException, InterruptedException {
+    private File syncDownloadFile() throws IOException, InterruptedException {
         File output = new File(TunnelManager.DATA_FOLDER, UUID.randomUUID().toString());
         if(!output.getParentFile().exists()) output.getParentFile().mkdirs();
         if(!output.exists()) output.createNewFile();
@@ -159,25 +181,21 @@ public class DownloadedCloudflared extends Cloudflared {
         return output;
     }
 
-    private void prepareFile(@NotNull File downloadedFile, File targetFile) throws IOException, InterruptedException {
-        var platform = Platform.get();
-
-        if(platform == Platform.MACOSX) {
-            var workingDirectory = downloadedFile.getParentFile().toPath();
-            runCommand(workingDirectory, "tar", "-xzf", downloadedFile.getName());
-            Files.move(workingDirectory.resolve("cloudflared"), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-        } else {
-            Files.move(downloadedFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    private void prepareFile(File downloadedFile, File targetFile) throws IOException, InterruptedException {
+        if(download.osName().contains("mac os x")) {
+            throw new IOException("macOS cloudflared download is not supported in the first 1.12.2 legacy release");
         }
 
-        if(platform == Platform.LINUX || platform == Platform.MACOSX) {
+        Files.move(downloadedFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        if(!RunningTunnel.isWindows()) {
             makeExecutable(targetFile.toPath());
         }
 
         downloadedFile.delete();
     }
 
-    private void runCommand(@NotNull Path workingDirectory, String... command) throws IOException, InterruptedException {
+    private void runCommand(Path workingDirectory, String... command) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = new ProcessBuilder(command)
                 .directory(workingDirectory.toFile())
                 .redirectErrorStream(true);
@@ -193,16 +211,16 @@ public class DownloadedCloudflared extends Cloudflared {
         }
     }
 
-    private void makeExecutable(@NotNull Path path) throws IOException {
+    private void makeExecutable(Path path) throws IOException {
         try {
-            var permissions = Files.getPosixFilePermissions(path);
+            Set<PosixFilePermission> permissions = new HashSet<PosixFilePermission>(Files.getPosixFilePermissions(path));
             permissions.add(PosixFilePermission.OWNER_EXECUTE);
             permissions.add(PosixFilePermission.GROUP_EXECUTE);
             permissions.add(PosixFilePermission.OTHERS_EXECUTE);
             Files.setPosixFilePermissions(path, permissions);
         } catch (UnsupportedOperationException exception) {
             // Fallback (non-POSIX)
-            var file = path.toFile();
+            File file = path.toFile();
             if(!file.setExecutable(true, false)) {
                 throw new IOException("Failed to set executable bit on " + file.getName());
             }
@@ -210,7 +228,7 @@ public class DownloadedCloudflared extends Cloudflared {
     }
 
     private void save() throws IOException {
-        Files.writeString(VERSION_FILE.toPath(), Modflared.GSON.toJson(this), StandardCharsets.UTF_8);
+        Files.write(VERSION_FILE.toPath(), Modflared.GSON.toJson(this).getBytes(StandardCharsets.UTF_8));
     }
 
 }
