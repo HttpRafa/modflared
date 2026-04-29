@@ -9,15 +9,10 @@ import dev.httxrafa.modflared.interfaces.mixin.IConnection;
 import dev.httxrafa.modflared.tunnel.RunningTunnel;
 import dev.httxrafa.modflared.tunnel.TunnelStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.toasts.SystemToast;
-import net.minecraft.client.multiplayer.resolver.ServerAddress;
-import net.minecraft.network.Connection;
-import net.minecraft.network.chat.Component;
-import net.neoforged.fml.loading.FMLPaths;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.minecraft.client.multiplayer.ServerAddress;
+import net.minecraft.network.NetworkManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -34,11 +29,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class TunnelManager {
 
-    public static final File BASE_FOLDER = FMLPaths.GAMEDIR.get().resolve("modflared/").toFile();
-    public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin/");
+    public static final File BASE_FOLDER = new File(Minecraft.getMinecraft().gameDir, "modflared");
+    public static final File DATA_FOLDER = new File(BASE_FOLDER, "bin");
     public static final File FORCED_TUNNELS_FILE = new File(BASE_FOLDER, "forced_tunnels.json");
 
-    public static final Logger CLOUDFLARE_LOGGER = LoggerFactory.getLogger("Cloudflared");
+    public static final Logger CLOUDFLARE_LOGGER = LogManager.getLogger("Cloudflared");
 
     private final AtomicReference<Cloudflared> cloudflared = new AtomicReference<>();
     private final List<ServerAddress> forcedTunnels = new ArrayList<>();
@@ -50,10 +45,10 @@ public class TunnelManager {
     }
 
     public RunningTunnel createTunnel(String host) {
-        var binary = this.cloudflared.get();
+        Cloudflared binary = this.cloudflared.get();
         if (binary != null) {
             Modflared.LOGGER.info("Starting tunnel to {}", host);
-            var process = binary.createTunnel(RunningTunnel.Access.localWithRandomPort(host));
+            RunningTunnel process = binary.createTunnel(RunningTunnel.Access.localWithRandomPort(host));
             if (process == null) return null;
             this.runningTunnels.add(process);
             return process;
@@ -62,8 +57,8 @@ public class TunnelManager {
         }
     }
 
-    public void closeTunnel(@NotNull RunningTunnel runningTunnel) {
-        Modflared.LOGGER.info("Stopping tunnel to {}", runningTunnel.access().tunnelAddress());
+    public void closeTunnel(RunningTunnel runningTunnel) {
+        Modflared.LOGGER.info("Stopping tunnel to {}", runningTunnel.getAccess().getTunnelAddress());
         this.runningTunnels.remove(runningTunnel);
         runningTunnel.closeTunnel();
     }
@@ -93,9 +88,11 @@ public class TunnelManager {
      * @return The route to use for the tunnel, or null if the tunnel should not be used
      * @throws IOException If an error occurs while resolving the DNS TXT records
      */
-    public @Nullable String shouldUseTunnel(String host) throws IOException {
-        if (forcedTunnels.stream().anyMatch(serverAddress -> serverAddress.getHost().equalsIgnoreCase(host))) {
-            return host;
+    public String shouldUseTunnel(String host) throws IOException {
+        for (ServerAddress serverAddress : forcedTunnels) {
+            if (serverAddress.getIP().equalsIgnoreCase(host)) {
+                return host;
+            }
         }
 
         // Check if the host is an IP address
@@ -103,16 +100,16 @@ public class TunnelManager {
             return null;
         }
         try {
-            var properties = new Properties();
+            Properties properties = new Properties();
             properties.put("java.naming.factory.initial", "com.sun.jndi.dns.DnsContextFactory");
             InitialDirContext dirContext = new InitialDirContext(properties);
             Attributes attributes = dirContext.getAttributes(host, new String[]{"TXT"});
             Attribute txtRecords = attributes.get("TXT");
 
             if (txtRecords != null) {
-                var iterator = txtRecords.getAll();
+                javax.naming.NamingEnumeration<?> iterator = txtRecords.getAll();
                 while (iterator.hasMore()) {
-                    var record = ((String) iterator.next()).replaceAll("\"", "");
+                    String record = ((String) iterator.next()).replaceAll("\"", "");
                     if (record.startsWith("cloudflared-route=")) {
                         return record.replace("cloudflared-route=", "");
                     } else if (record.equals("cloudflared-use-tunnel")) {
@@ -144,7 +141,9 @@ public class TunnelManager {
      * @see <a href="https://stackoverflow.com/a/57612280">How do you tell whether a string is an IP or a hostname</a>
      */
     private boolean isHost(String ip) {
-        if (ip.strip().equalsIgnoreCase("localhost")) return false;
+        if (ip.trim().equalsIgnoreCase("localhost")) {
+            return false;
+        }
         try {
             InetAddress[] ips = InetAddress.getAllByName(ip);
             // #getAllByName will return an InetAddress that is the same as the input if it is an IP address,
@@ -155,14 +154,14 @@ public class TunnelManager {
         }
     }
 
-    public void prepareConnection(@NotNull TunnelStatus status, Connection connection) {
-        var tunnelConnection = (IConnection) connection;
-        if (status.runningTunnel() != null) {
-            tunnelConnection.setRunningTunnel(status.runningTunnel());
+    public void prepareConnection(TunnelStatus status, NetworkManager connection) {
+        IConnection tunnelConnection = (IConnection) connection;
+        if (status.getRunningTunnel() != null) {
+            tunnelConnection.setRunningTunnel(status.getRunningTunnel());
         }
     }
 
-    public TunnelStatus handleConnect(@NotNull InetSocketAddress address) {
+    public TunnelStatus handleConnect(InetSocketAddress address) {
         if(this.cloudflared.get() == null) {
             Modflared.LOGGER.warn("Modflared is not ready yet, ignoring all connections.");
             return new TunnelStatus(null, TunnelStatus.State.DONT_USE);
@@ -186,18 +185,24 @@ public class TunnelManager {
     }
 
     public void prepareBinary() {
-        Cloudflared.create().whenComplete((version, throwable) -> {
-            if (throwable != null) {
-                Modflared.LOGGER.error(throwable.getMessage(), throwable);
-            } else {
-                version.prepare().whenComplete((unused, throwable1) -> {
-                    if (throwable1 != null) {
-                        Modflared.LOGGER.error(throwable1.getMessage(), throwable1);
-                        displayErrorToast();
-                    } else {
-                        this.cloudflared.set(version);
-                    }
-                });
+        Cloudflared.create().whenComplete(new java.util.function.BiConsumer<Cloudflared, Throwable>() {
+            @Override
+            public void accept(Cloudflared version, Throwable throwable) {
+                if (throwable != null) {
+                    Modflared.LOGGER.error(throwable.getMessage(), throwable);
+                } else {
+                    version.prepare().whenComplete(new java.util.function.BiConsumer<Void, Throwable>() {
+                        @Override
+                        public void accept(Void unused, Throwable throwable1) {
+                            if (throwable1 != null) {
+                                Modflared.LOGGER.error(throwable1.getMessage(), throwable1);
+                                displayErrorToast();
+                            } else {
+                                TunnelManager.this.cloudflared.set(version);
+                            }
+                        }
+                    });
+                }
             }
         });
     }
@@ -209,16 +214,16 @@ public class TunnelManager {
         }
 
         try {
-            JsonArray entriesArray = JsonParser.parseReader(
+            JsonArray entriesArray = new JsonParser().parse(
                     new InputStreamReader(new FileInputStream(FORCED_TUNNELS_FILE))).getAsJsonArray();
             for (JsonElement jsonElement : entriesArray) {
-                var serverString = jsonElement.getAsString();
+                String serverString = jsonElement.getAsString();
 
-                if (!ServerAddress.isValidAddress(serverString)) {
-                    Modflared.LOGGER.error("Invalid server address: {}", serverString);
+                ServerAddress serverAddress = parseServerAddress(serverString);
+                if (serverAddress == null) {
                     continue;
                 }
-                forcedTunnels.add(ServerAddress.parseString(serverString));
+                forcedTunnels.add(serverAddress);
             }
         } catch (Exception exception) {
             Modflared.LOGGER.error("Failed to load forced tunnels", exception);
@@ -226,12 +231,21 @@ public class TunnelManager {
 
         Modflared.LOGGER.info("Loaded {} forced tunnels", forcedTunnels.size());
         for (ServerAddress serverAddress : forcedTunnels) {
-            Modflared.LOGGER.info(" - {}", serverAddress.getHost());
+            Modflared.LOGGER.info(" - {}", serverAddress.getIP());
+        }
+    }
+
+    private ServerAddress parseServerAddress(String serverString) {
+        try {
+            return ServerAddress.fromString(serverString);
+        } catch (RuntimeException exception) {
+            Modflared.LOGGER.error("Invalid server address: " + serverString, exception);
+            return null;
         }
     }
 
     public static void displayErrorToast() {
-        Minecraft.getInstance().getToastManager().addToast(new SystemToast(SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.translatable("gui.toast.title.error"), Component.translatable("gui.toast.body.error")));
+        Modflared.LOGGER.error("Modflared setup failed. Check the log for cloudflared setup details.");
     }
 
 }
