@@ -160,7 +160,7 @@ public class DownloadedCloudflared extends Cloudflared {
                 } catch (Exception exception) {
                     throw new IllegalStateException("Failed to download cloudflared binary", exception);
                 }
-                throw new IllegalStateException("Modflared failed 5 times to download cloudflared from github. Please check your internet connection");
+                throw new IllegalStateException("Modflared failed 4 times to download cloudflared from github. Please check your internet connection");
             }
         }, Modflared.EXECUTOR);
     }
