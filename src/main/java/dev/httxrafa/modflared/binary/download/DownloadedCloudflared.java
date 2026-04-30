@@ -156,7 +156,7 @@ public class DownloadedCloudflared extends Cloudflared {
                         }
                     }
                 } catch (InterruptedException exception) {
-                    throw new IllegalStateException("Error while unpacking MacOS cloudflared download", exception);
+                    throw new IllegalStateException("Download interrupted", exception);
                 } catch (Exception exception) {
                     throw new IllegalStateException("Failed to download cloudflared binary", exception);
                 }
