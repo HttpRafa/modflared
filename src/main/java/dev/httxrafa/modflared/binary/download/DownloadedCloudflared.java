@@ -56,24 +56,24 @@ public class DownloadedCloudflared extends Cloudflared {
     public CompletableFuture<Void> prepare() {
         if(isInstalled()) {
             final CompletableFuture<Void> completableFuture = new CompletableFuture<Void>();
-            isUptoDate().whenComplete(new java.util.function.BiConsumer<Boolean, Throwable>() {
+            requestLatestVersion().whenComplete(new java.util.function.BiConsumer<String, Throwable>() {
                 @Override
-                public void accept(Boolean upToDate, Throwable throwable) {
+                public void accept(String latestVersion, Throwable throwable) {
                     if (throwable != null) {
                         Modflared.LOGGER.error("Failed to check for updates", throwable);
-                        TunnelManager.displayErrorToast();
+                        TunnelManager.logSetupError();
                         completableFuture.complete(null);
                     } else {
-                        if(!upToDate) {
+                        if(!latestVersion.equals(DownloadedCloudflared.this.version)) {
                             Modflared.LOGGER.info("Update detected updating...");
-                            DownloadedCloudflared.this.version = version; // This line looks wrong in original too
+                            DownloadedCloudflared.this.version = latestVersion;
                             downloadAndSaveInfo().whenComplete(new java.util.function.BiConsumer<Void, Throwable>() {
                                 @Override
                                 public void accept(Void unused, Throwable throwable1) {
                                     if (throwable1 != null) {
                                         Modflared.LOGGER.error("Failed to download update", throwable1);
+                                        TunnelManager.logSetupError();
                                     }
-                                    TunnelManager.displayErrorToast();
                                     completableFuture.complete(null);
                                 }
                             });
@@ -108,7 +108,7 @@ public class DownloadedCloudflared extends Cloudflared {
                     save();
                 } catch (Throwable throwable) {
                     Modflared.LOGGER.error("Failed to save current installed version", throwable);
-                    TunnelManager.displayErrorToast();
+                    TunnelManager.logSetupError();
                 }
             }
         });
@@ -122,13 +122,8 @@ public class DownloadedCloudflared extends Cloudflared {
         return new File(TunnelManager.DATA_FOLDER, download.fileName());
     }
 
-    public CompletableFuture<Boolean> isUptoDate() {
-        return GithubAPI.requestLatestVersion().thenApply(new java.util.function.Function<String, Boolean>() {
-            @Override
-            public Boolean apply(String latestVersion) {
-                return latestVersion.equals(DownloadedCloudflared.this.version);
-            }
-        });
+    public CompletableFuture<String> requestLatestVersion() {
+        return GithubAPI.requestLatestVersion();
     }
 
     public CompletableFuture<Void> downloadFile() {
@@ -156,6 +151,7 @@ public class DownloadedCloudflared extends Cloudflared {
                         }
                     }
                 } catch (InterruptedException exception) {
+                    Thread.currentThread().interrupt();
                     throw new IllegalStateException("Download interrupted", exception);
                 } catch (Exception exception) {
                     throw new IllegalStateException("Failed to download cloudflared binary", exception);
@@ -183,10 +179,12 @@ public class DownloadedCloudflared extends Cloudflared {
 
     private void prepareFile(File downloadedFile, File targetFile) throws IOException, InterruptedException {
         if(download.osName().contains("mac os x")) {
-            throw new IOException("macOS cloudflared download is not supported in the first 1.12.2 legacy release");
+            Path workingDirectory = downloadedFile.getParentFile().toPath();
+            runCommand(workingDirectory, "tar", "-xzf", downloadedFile.getName());
+            Files.move(workingDirectory.resolve("cloudflared"), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            Files.move(downloadedFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
-
-        Files.move(downloadedFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         if(!RunningTunnel.isWindows()) {
             makeExecutable(targetFile.toPath());

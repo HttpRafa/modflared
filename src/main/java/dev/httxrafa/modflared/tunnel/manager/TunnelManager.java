@@ -196,7 +196,7 @@ public class TunnelManager {
                         public void accept(Void unused, Throwable throwable1) {
                             if (throwable1 != null) {
                                 Modflared.LOGGER.error(throwable1.getMessage(), throwable1);
-                                displayErrorToast();
+                                logSetupError();
                             } else {
                                 TunnelManager.this.cloudflared.set(version);
                             }
@@ -244,7 +244,7 @@ public class TunnelManager {
         }
     }
 
-    public static void displayErrorToast() {
+    public static void logSetupError() {
         Modflared.LOGGER.error("Modflared setup failed. Check the log for cloudflared setup details.");
     }
 

@@ -24,7 +24,7 @@ public class GuiConnectingThreadMixin {
                     target = "Lnet/minecraft/network/NetworkManager;createNetworkManagerAndConnect(Ljava/net/InetAddress;IZ)Lnet/minecraft/network/NetworkManager;"
             )
     )
-    private NetworkManager modflared$routeDirectConnect(InetAddress address, int port, boolean useNativeTransport) {
+    private NetworkManager modflared$routeDirectConnect(InetAddress address, int port, boolean useNativeTransport) throws UnknownHostException {
         InetSocketAddress original = new InetSocketAddress(address, port);
         TunnelStatus status = Modflared.TUNNEL_MANAGER.handleConnect(original);
 
@@ -40,16 +40,12 @@ public class GuiConnectingThreadMixin {
             target = original;
         }
 
-        try {
-            NetworkManager manager = NetworkManager.createNetworkManagerAndConnect(
-                    InetAddress.getByName(target.getHostString()),
-                    target.getPort(),
-                    useNativeTransport
-            );
-            Modflared.TUNNEL_MANAGER.prepareConnection(status, manager);
-            return manager;
-        } catch (UnknownHostException exception) {
-            throw new RuntimeException("Failed to resolve tunnel target " + target, exception);
-        }
+        NetworkManager manager = NetworkManager.createNetworkManagerAndConnect(
+                InetAddress.getByName(target.getHostString()),
+                target.getPort(),
+                useNativeTransport
+        );
+        Modflared.TUNNEL_MANAGER.prepareConnection(status, manager);
+        return manager;
     }
 }
