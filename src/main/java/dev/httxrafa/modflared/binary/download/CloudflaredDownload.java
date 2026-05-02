@@ -1,9 +1,5 @@
 package dev.httxrafa.modflared.binary.download;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-
 public enum CloudflaredDownload {
 
     WINDOW_32("windows", "x86", "cloudflared-windows-386.exe", "cloudflared-windows-386.exe"),
@@ -27,15 +23,19 @@ public enum CloudflaredDownload {
         this.downloadFile = downloadFile;
     }
 
-    public static @NotNull CloudflaredDownload find() {
-        String osName = System.getProperty("os.name").toLowerCase();
-        String arch = System.getProperty("os.arch").toLowerCase();
-        var download = Arrays.stream(CloudflaredDownload.values()).filter(item -> osName.contains(item.osName) && arch.contains(item.arch)).findFirst();
-        if(download.isPresent()) {
-            return download.get();
-        } else {
-            throw new IllegalStateException("Cloudflared could not be downloaded because no binary file was found for the current operating system");
+    public static CloudflaredDownload find() {
+        return find(System.getProperty("os.name"), System.getProperty("os.arch"));
+    }
+
+    public static CloudflaredDownload find(String osNameValue, String archValue) {
+        String osName = osNameValue.toLowerCase();
+        String arch = archValue.toLowerCase();
+        for (CloudflaredDownload item : CloudflaredDownload.values()) {
+            if (osName.contains(item.osName) && arch.contains(item.arch)) {
+                return item;
+            }
         }
+        throw new IllegalStateException("Cloudflared could not be downloaded because no binary file was found for the current operating system");
     }
 
     public String osName() {

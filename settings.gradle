@@ -1,9 +1,2 @@
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-    }
-}
-
-plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
-}
+// ForgeGradle 1.12.2 single-project settings
+rootProject.name = 'modflared'

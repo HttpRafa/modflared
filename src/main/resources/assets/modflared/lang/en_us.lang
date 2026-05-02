@@ -1,0 +1,6 @@
+gui.tunnel.status.use=Using Cloudflare tunnel
+gui.tunnel.status.failed.0=Modflared could not determine if a tunnel is required.
+gui.tunnel.status.failed.1=The connection will continue without a tunnel.
+gui.tunnel.status.failed.2=Add this server to forced_tunnels.json if it must use a tunnel.
+gui.toast.title.error=Modflared error
+gui.toast.body.error=Check the log for cloudflared setup details.

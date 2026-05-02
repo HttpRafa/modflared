@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "${mod_id}",
+    "name": "${mod_name}",
+    "description": "${mod_description}",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/HttpRafa/modflared",
+    "updateUrl": "",
+    "authorList": ["${mod_authors}"],
+    "credits": "",
+    "logoFile": "modflared.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

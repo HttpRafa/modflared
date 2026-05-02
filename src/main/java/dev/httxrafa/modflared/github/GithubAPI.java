@@ -7,9 +7,6 @@ import com.google.common.io.Files;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.httxrafa.modflared.Modflared;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +16,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -39,57 +37,86 @@ public class GithubAPI {
         }
     }
 
-    @Contract(" -> new")
-    public static @NotNull CompletableFuture<String> requestLatestVersion() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return getJsonFromEndpoint(GITHUB_API_ENDPOINT).get("tag_name").getAsString();
-            } catch (Throwable throwable) {
-                throw new IllegalStateException("Failed to get latest cloudflared version from github", throwable);
+    public static CompletableFuture<String> requestLatestVersion() {
+        return CompletableFuture.supplyAsync(new java.util.function.Supplier<String>() {
+            @Override
+            public String get() {
+                try {
+                    return getJsonFromEndpoint(GITHUB_API_ENDPOINT).get("tag_name").getAsString();
+                } catch (Throwable throwable) {
+                    throw new IllegalStateException("Failed to get latest cloudflared version from github", throwable);
+                }
             }
         }, Modflared.EXECUTOR);
     }
 
-    @Contract("_ -> new")
-    public static @NotNull CompletableFuture<FileHash> requestFileHash(String filename) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return extractHashes(getJsonFromEndpoint(GITHUB_API_ENDPOINT)).stream().filter(item -> item.file.equals(filename)).findFirst().orElseThrow();
-            } catch (Throwable throwable) {
-                throw new IllegalStateException("Failed to get file hash from github", throwable);
+    public static CompletableFuture<FileHash> requestFileHash(String filename) {
+        return CompletableFuture.supplyAsync(new java.util.function.Supplier<FileHash>() {
+            @Override
+            public FileHash get() {
+                try {
+                    List<FileHash> hashes = extractHashes(getJsonFromEndpoint(GITHUB_API_ENDPOINT));
+                    for (FileHash item : hashes) {
+                        if (item.file().equals(filename)) {
+                            return item;
+                        }
+                    }
+                    throw new IllegalStateException("File hash not found for " + filename);
+                } catch (Throwable throwable) {
+                    throw new IllegalStateException("Failed to get file hash from github", throwable);
+                }
             }
         }, Modflared.EXECUTOR);
     }
 
-    private static @NotNull @Unmodifiable List<FileHash> extractHashes(@NotNull JsonObject data) {
-        return Arrays.stream(data.get("body").getAsString().split("\n")).filter(item -> item.startsWith("cloudflared-") && item.contains(":")).map(item -> {
-            var fileData = item.split(":");
-            return new FileHash(fileData[0].trim(), fileData[1].trim());
-        }).toList();
+    private static List<FileHash> extractHashes(JsonObject data) {
+        List<FileHash> hashes = new ArrayList<FileHash>();
+        String[] lines = data.get("body").getAsString().split("\n");
+        for (String line : lines) {
+            if (line.startsWith("cloudflared-") && line.contains(":")) {
+                String[] fileData = line.split(":");
+                hashes.add(new FileHash(fileData[0].trim(), fileData[1].trim()));
+            }
+        }
+        return Collections.unmodifiableList(hashes);
     }
 
-    private static JsonObject getJsonFromEndpoint(@NotNull URL url) throws IOException {
+    private static JsonObject getJsonFromEndpoint(URL url) throws IOException {
         URLConnection connection = url.openConnection();
         InputStream inputStream = connection.getInputStream();
-        return JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
+        return new JsonParser().parse(new InputStreamReader(inputStream)).getAsJsonObject();
     }
 
-    public record FileHash(String file, String hash) {
+    public static class FileHash {
+        private final String file;
+        private final String hash;
+
+        public FileHash(String file, String hash) {
+            this.file = file;
+            this.hash = hash;
+        }
+
+        public String file() {
+            return file;
+        }
+
+        public String hash() {
+            return hash;
+        }
 
         public boolean compareTo(File file) throws IOException {
             return compareTo(computeHash(file));
         }
 
-        public boolean compareTo(@NotNull FileHash hash) {
+        public boolean compareTo(FileHash hash) {
             return Objects.equals(this.hash, hash.hash());
         }
 
-        public static @NotNull FileHash computeHash(File file) throws IOException {
+        public static FileHash computeHash(File file) throws IOException {
             ByteSource byteSource = Files.asByteSource(file);
             HashCode hashCode = byteSource.hash(Hashing.sha256());
             return new FileHash(file.getName(), hashCode.toString());
         }
-
     }
 
 }
