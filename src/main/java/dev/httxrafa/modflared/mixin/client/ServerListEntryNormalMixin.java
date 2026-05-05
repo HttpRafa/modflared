@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.gui.ServerListEntryNormal;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -42,7 +43,10 @@ public abstract class ServerListEntryNormalMixin {
     private static final int MODFLARED_INDICATOR_RIGHT_OFFSET = 28;
 
     @Unique
-    private static final String MODFLARED_INDICATOR_TOOLTIP = "Modflared in use";
+    private static final String MODFLARED_INDICATOR_TOOLTIP_KEY = "gui.multiplayer.tunnel.status.0";
+
+    @Unique
+    private static final String MODFLARED_INDICATOR_TOOLTIP_FALLBACK = "Modflared in use";
 
     @Inject(method = "drawEntry", at = @At("TAIL"))
     private void modflared$drawTunnelIndicator(int slotIndex, int x, int y, int listWidth, int slotHeight, int mouseX, int mouseY, boolean isSelected, float partialTicks, CallbackInfo callbackInfo) {
@@ -68,7 +72,16 @@ public abstract class ServerListEntryNormalMixin {
         );
 
         if (mouseX >= indicatorX && mouseX <= indicatorX + MODFLARED_INDICATOR_SIZE && mouseY >= indicatorY && mouseY <= indicatorY + MODFLARED_INDICATOR_SIZE) {
-            this.owner.setHoveringText(MODFLARED_INDICATOR_TOOLTIP);
+            this.owner.setHoveringText(modflared$translate(MODFLARED_INDICATOR_TOOLTIP_KEY, MODFLARED_INDICATOR_TOOLTIP_FALLBACK));
         }
+    }
+
+    @Unique
+    private static String modflared$translate(String key, String fallback) {
+        String translated = I18n.format(key);
+        if (translated == null || translated.equals(key)) {
+            return fallback;
+        }
+        return translated;
     }
 }
