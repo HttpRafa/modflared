@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.gui.ServerListEntryNormal;
 import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -53,6 +54,7 @@ public abstract class ServerListEntryNormalMixin {
         int indicatorX = x + listWidth - MODFLARED_INDICATOR_RIGHT_OFFSET;
         int indicatorY = y + 11;
 
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         Minecraft.getMinecraft().getTextureManager().bindTexture(MODFLARED_INDICATOR_TEXTURE);
         Gui.drawModalRectWithCustomSizedTexture(
                 indicatorX,
