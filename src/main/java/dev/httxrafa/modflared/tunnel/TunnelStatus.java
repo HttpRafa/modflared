@@ -1,8 +1,8 @@
 package dev.httxrafa.modflared.tunnel;
 
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,11 +29,11 @@ public class TunnelStatus {
     public List<ITextComponent> generateFeedback() {
         List<ITextComponent> feedback = new ArrayList<ITextComponent>();
         if (state == State.USE) {
-            feedback.add(new TextComponentTranslation("gui.tunnel.status.use").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.AQUA)));
+            feedback.add(new TextComponentString("Using Cloudflare tunnel").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.AQUA)));
         } else if (state == State.FAILED_TO_DETERMINE) {
-            feedback.add(new TextComponentTranslation("gui.tunnel.status.failed.0").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.RED)));
-            feedback.add(new TextComponentTranslation("gui.tunnel.status.failed.1").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.RED)));
-            feedback.add(new TextComponentTranslation("gui.tunnel.status.failed.2").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.RED)));
+            feedback.add(new TextComponentString("Modflared could not determine if a tunnel is required.").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.RED)));
+            feedback.add(new TextComponentString("The connection will continue without a tunnel.").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.RED)));
+            feedback.add(new TextComponentString("Add this server to forced_tunnels.json if it must use a tunnel.").setStyle(new net.minecraft.util.text.Style().setColor(TextFormatting.RED)));
         }
         return Collections.unmodifiableList(feedback);
     }
