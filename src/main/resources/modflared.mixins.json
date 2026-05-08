@@ -9,6 +9,7 @@
     "client.GuiConnectingMixin",
     "client.GuiConnectingThreadMixin",
     "client.ServerDataMixin",
+    "client.ServerListEntryNormalMixin",
     "client.ServerPingerMixin"
   ],
   "client": [],
