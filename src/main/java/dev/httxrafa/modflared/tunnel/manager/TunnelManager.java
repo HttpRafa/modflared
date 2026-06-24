@@ -231,7 +231,7 @@ public class TunnelManager {
     }
 
     public static void displayErrorToast() {
-        Minecraft.getInstance().getToastManager().addToast(new SystemToast(SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.translatable("gui.toast.title.error"), Component.translatable("gui.toast.body.error")));
+        Minecraft.getInstance().gui.toastManager().addToast(new SystemToast(SystemToast.SystemToastId.PERIODIC_NOTIFICATION, Component.translatable("gui.toast.title.error"), Component.translatable("gui.toast.body.error")));
     }
 
 }

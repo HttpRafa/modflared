@@ -23,7 +23,7 @@ public class ConnectScreenRunnableMixin {
         var status = Modflared.TUNNEL_MANAGER.handleConnect(address);
         Modflared.TUNNEL_MANAGER.prepareConnection(status, connection);
 
-        var currentScreen =  Minecraft.getInstance().screen;
+        var currentScreen = Minecraft.getInstance().gui.screen();
         if (currentScreen instanceof ConnectScreen connectScreen) {
             ((IConnectScreen) connectScreen).setStatus(status);
         }
