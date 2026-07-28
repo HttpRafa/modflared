@@ -2,7 +2,9 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import net.darkhax.curseforgegradle.TaskPublishCurseForge
+import io.github.themrmilchmann.gradle.publish.curseforge.ChangelogFormat
+import io.github.themrmilchmann.gradle.publish.curseforge.GameVersion
+import io.github.themrmilchmann.gradle.publish.curseforge.ReleaseType
 
 import java.nio.file.Files
 
@@ -11,7 +13,7 @@ plugins {
     id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.141'
     id "com.modrinth.minotaur" version "2.8.10"
-    id 'net.darkhax.curseforgegradle' version '1.1.26'
+    id 'io.github.themrmilchmann.curseforge-publish' version '0.8.0'
     id 'idea'
 }
 
@@ -185,21 +187,32 @@ modrinth {
 
     syncBodyFrom = rootProject.file("README.md").text;
 }
-
 tasks.modrinth.dependsOn(tasks.modrinthSyncBody)
 
 // Configure the curseforge publication
-tasks.register('publishCurseForge', TaskPublishCurseForge) {
+curseforge {
     apiToken = System.getenv("CURSEFORGE_TOKEN")
 
-    // The main file to upload
-    def mainFile = upload(curseforge_project_id, jar)
-    mainFile.displayName = "${version} for ${minecraft_version}"
-    mainFile.releaseType = mod_version_type
-    mainFile.changelog = generateChangelog()
-    mainFile.changelogType = 'markdown'
-    mainFile.addGameVersion(minecraft_version)
-    mainFile.addModLoader("neoforge")
+    //noinspection GroovyAssignabilityCheck
+    publications {
+         neoForge {
+            projectId = "${curseforge_project_id}"
+
+            gameVersions.add(new GameVersion("environment", "client"))
+            gameVersions.add(new GameVersion("modloader", "neoforge"))
+            gameVersions.add(new GameVersion("${minecraft_version_type}", "${minecraft_version}".replaceAll("\\.", "-")))
+
+            artifacts.named("main") {
+                displayName = "${version} for ${minecraft_version}"
+                releaseType = ReleaseType.values().find {type -> "${mod_version_type}".containsIgnoreCase(type.toString()) }
+
+                changelog {
+                    format = ChangelogFormat.TEXT
+                    from(generateChangelog())
+                }
+            }
+        }
+    }
 }
 
 // Credits: https://github.com/RelativityMC/VMP-fabric
