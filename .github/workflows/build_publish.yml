@@ -40,13 +40,8 @@ jobs:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_EVENT_RAW_PATH: ${{ github.event_path }}
       - name: upload to curseforge
-<<<<<<< HEAD
         if: "contains(github.ref, '26.1') && !contains(github.event.head_commit.message, 'upload skip')"
-        run: ./gradlew publishCurseForge
-=======
-        if: "contains(github.ref, '1.21.11') && !contains(github.event.head_commit.message, 'upload skip')"
         run: ./gradlew publishToCurseForge
->>>>>>> neoforge/1.21.11
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_UPLOAD_TOKEN }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
