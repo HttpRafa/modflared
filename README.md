@@ -19,8 +19,8 @@ Replace `example.domain.net` with the correct subdomain you want to use. If you'
 Restart the cloudflare daemon (`sudo systemctl restart cloudflared`) to apply the changes.
 Add the correct DNS entry: go to [Cloudflare dashboard](https://dash.cloudflare.net), go to your website and DNS entries, then add a new CNAME DNS entry with your subdomain and set the target to `<tunnelID>.cfargotunnel.com`, with the tunnel ID found in the cloudflare config.yml file.
 ### Example DNS Entries
-![Example CNAME](https://raw.githubusercontent.com/HttpRafa/modflared/multi/latest/.github/images/dns_cname.png)
-![Example TXT](https://raw.githubusercontent.com/HttpRafa/modflared/multi/latest/.github/images/dns_txt.png)
+![Example CNAME](https://raw.githubusercontent.com/HttpRafa/modflared/refs/heads/neoforge/1.21.11/.github/images/dns_cname.png)
+![Example TXT](https://raw.githubusercontent.com/HttpRafa/modflared/refs/heads/neoforge/1.21.11/.github/images/dns_txt.png)
 
 ### For Players
 If your server admin has properly configured their server you should be able to connect to the server as usual. 
