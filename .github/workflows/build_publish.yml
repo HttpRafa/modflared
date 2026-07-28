@@ -41,7 +41,7 @@ jobs:
           GITHUB_EVENT_RAW_PATH: ${{ github.event_path }}
       - name: upload to curseforge
         if: "contains(github.ref, '26.2') && !contains(github.event.head_commit.message, 'upload skip')"
-        run: ./gradlew publishCurseForge
+        run: ./gradlew publishToCurseForge
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_UPLOAD_TOKEN }}
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
